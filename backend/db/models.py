@@ -36,7 +36,7 @@ class Order(Base):
     __tablename__ = "order"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="orders")
@@ -46,8 +46,8 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_item"
 
-    order_id: Mapped[int] = mapped_column(ForeignKey("order.id"), primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("product.id"), primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("order.id", ondelete="CASCADE"), primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id", ondelete="CASCADE"), primary_key=True)
     quantity: Mapped[int] = mapped_column(nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="order_items")
