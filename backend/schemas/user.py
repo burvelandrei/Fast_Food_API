@@ -9,7 +9,7 @@ class UserOut(BaseModel):
     email: EmailStr | None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
 
 
 class UserCreateTg(BaseModel):
@@ -18,5 +18,6 @@ class UserCreateTg(BaseModel):
 
 
 class UserCreateWeb(BaseModel):
+    username: str
     email: EmailStr
     hashed_password: str
