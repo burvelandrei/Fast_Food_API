@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import User, Product, Order, OrderItem
+from db.models import User, Product, Order, OrderItem, Category
 
 
 class BaseDO:
@@ -60,6 +60,10 @@ class BaseDO:
 
 class UserDO(BaseDO):
     model = User
+
+
+class CategoryDO(BaseDO):
+    model = Category
 
 
 class ProductDO(BaseDO):
