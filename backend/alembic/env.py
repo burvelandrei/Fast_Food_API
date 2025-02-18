@@ -24,19 +24,25 @@ DATABASE_URL = (
     f"{env("DB_HOST")}:{env("DB_PORT")}/{env("DB_NAME")}"
 )
 
+
 # Создаём движок SQLAlchemy
 connectable = create_async_engine(DATABASE_URL, poolclass=pool.NullPool)
 
+
 def run_migrations_offline():
     """Запускаем миграции в оффлайн-режиме (без подключения к базе)"""
-    context.configure(url=DATABASE_URL, target_metadata=Base.metadata, literal_binds=True)
+    context.configure(
+        url=DATABASE_URL, target_metadata=Base.metadata, literal_binds=True
+    )
     with context.begin_transaction():
         context.run_migrations()
+
 
 async def run_migrations_online():
     """Запускаем миграции в онлайн-режиме (с подключением к базе)"""
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
+
 
 def do_run_migrations(connection):
     """Запуск миграций"""
@@ -44,8 +50,10 @@ def do_run_migrations(connection):
     with context.begin_transaction():
         context.run_migrations()
 
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     import asyncio
+
     asyncio.run(run_migrations_online())
