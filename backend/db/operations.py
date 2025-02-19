@@ -69,6 +69,14 @@ class CategoryDO(BaseDO):
 class ProductDO(BaseDO):
     model = Product
 
+    @classmethod
+    async def get_all(cls, category_id: int, session: AsyncSession):
+        if category_id:
+            query = select(cls.model).where(cls.model.category_id == category_id)
+        query = select(cls.model)
+        result = await session.execute(query)
+        return result.scalars().all()
+
 
 class OrderDO(BaseDO):
     model = Order
