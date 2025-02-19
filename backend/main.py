@@ -1,8 +1,11 @@
 import uvicorn
 from fastapi import FastAPI
+from routers import product, category
 
 
 app = FastAPI(title="FastFood API")
+app.include_router(product.router)
+app.include_router(category.router)
 
 
 
