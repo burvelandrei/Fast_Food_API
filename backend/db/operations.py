@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User, Product, Order, OrderItem, Category
 
@@ -65,15 +66,21 @@ class UserDO(BaseDO):
 class CategoryDO(BaseDO):
     model = Category
 
+    @classmethod
+    async def get_all(cls, session: AsyncSession):
+        query = select(cls.model).options(selectinload(cls.model.products))
+        result = await session.execute(query)
+        return result.scalars().all()
+
 
 class ProductDO(BaseDO):
     model = Product
 
     @classmethod
     async def get_all(cls, category_id: int, session: AsyncSession):
-        if category_id:
-            query = select(cls.model).where(cls.model.category_id == category_id)
         query = select(cls.model)
+        if category_id:
+            query = query.where(cls.model.category_id == category_id)
         result = await session.execute(query)
         return result.scalars().all()
 
