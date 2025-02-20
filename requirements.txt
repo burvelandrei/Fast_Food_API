@@ -1,7 +1,6 @@
 aiogram==3.17.0
 aiogram-dialog==2.3.1
 fastapi==0.115.8
-aioredis==2.0.1
 aiohttp==3.11.12
 SQLAlchemy==2.0.38
 alembic==1.14.1
