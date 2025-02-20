@@ -1,8 +1,8 @@
 import json
+from redis.asyncio import Redis
 from schemas.cart import CartItemCreate
 
-
-async def add_to_cart(user_id: int, cart_item: CartItemCreate, redis):
+async def add_to_cart(user_id: int, cart_item: CartItemCreate, redis: Redis):
     cart_key = f"cart_{user_id}"
     existing_item = await redis.hget(cart_key, str(cart_item.product_id))
 
@@ -13,9 +13,10 @@ async def add_to_cart(user_id: int, cart_item: CartItemCreate, redis):
         existing_item = cart_item.dict()
 
     await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
+    await redis.expire(cart_key, 24*60*60)
 
 
-async def get_cart(user_id: int, redis):
+async def get_cart(user_id: int, redis: Redis):
     cart_key = f"cart_{user_id}"
     cart_items = await redis.hgetall(cart_key)
     if cart_items:
@@ -23,7 +24,7 @@ async def get_cart(user_id: int, redis):
     return []
 
 
-async def get_cart_item(user_id: int, product_id: int, redis):
+async def get_cart_item(user_id: int, product_id: int, redis: Redis):
     cart_key = f"cart_{user_id}"
     cart_item = await redis.hget(cart_key, str(product_id))
     if cart_item:
@@ -31,6 +32,11 @@ async def get_cart_item(user_id: int, product_id: int, redis):
     return {}
 
 
-async def remove_item(user_id: int, product_id: int, redis):
+async def remove_item(user_id: int, product_id: int, redis: Redis):
     cart_key = f"cart_{user_id}"
     await redis.hdel(cart_key, str(product_id))
+
+
+async def remove_cart(user_id: int, redis: Redis):
+    cart_key = f"cart_{user_id}"
+    await redis.delete(cart_key)
