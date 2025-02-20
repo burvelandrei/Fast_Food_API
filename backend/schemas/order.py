@@ -1,7 +1,16 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List
-from schemas.order_item import OrderItemOut
+from schemas.product import ProductOut
+
+
+class OrderItemOut(BaseModel):
+    quantity: int
+    product: ProductOut
+
+
+    class Config:
+        from_attributes = True
 
 
 class OrderOut(BaseModel):
