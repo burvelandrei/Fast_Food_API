@@ -18,9 +18,11 @@ async def confirmation_order(
     api_key: str = Depends(verify_api_key),
 ):
     cart = await get_cart(user_id, redis)
-    await OrderDO.add(user_id=user_id, session=session, values=cart)
-    await remove_cart(user_id, redis)
-    return {"message": "Order add"}
+    if cart:
+        await OrderDO.add(user_id=user_id, session=session, values=cart)
+        await remove_cart(user_id, redis)
+        return {"message": "Order add"}
+    return {"message": "No products in cart"}
 
 
 @router.get("/{user_id}", response_model=list[OrderOut])
