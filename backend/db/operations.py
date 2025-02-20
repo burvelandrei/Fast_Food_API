@@ -85,9 +85,50 @@ class ProductDO(BaseDO):
         return result.scalars().all()
 
 
+class OrderItemDO(BaseDO):
+    model = OrderItem
+
+    @classmethod
+    async def add_many(cls, order: int, session: AsyncSession, values: dict):
+        for item in values:
+            new_instance = cls.model(
+                order_id=order.id,
+                product_id=item["product_id"],
+                quantity=item["quantity"],
+            )
+            session.add(new_instance)
+        try:
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e
+
+
 class OrderDO(BaseDO):
     model = Order
 
+    @classmethod
+    async def get_all(cls, user_id: int, session: AsyncSession):
+        query = (
+            select(cls.model)
+            .where(cls.model.user_id == user_id)
+            .options(
+                selectinload(cls.model.order_items).selectinload(OrderItem.product)
+            )
+        )
+        result = await session.execute(query)
+        return result.scalars().all()
 
-class OrderItemDO(BaseDO):
-    model = OrderItem
+    @classmethod
+    async def add(cls, user_id: int, session: AsyncSession, values: dict):
+        new_instance = cls.model(user_id=user_id)
+        session.add(new_instance)
+        try:
+            await session.flush()
+            await OrderItemDO.add_many(
+                order=new_instance, session=session, values=values
+            )
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e
