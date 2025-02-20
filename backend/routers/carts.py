@@ -42,3 +42,4 @@ async def delete_item_from_cart(
     api_key: str = Depends(verify_api_key),
 ):
     return await remove_item(user_id, product_id, redis)
+
