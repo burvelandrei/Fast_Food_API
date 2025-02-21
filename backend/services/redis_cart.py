@@ -11,9 +11,13 @@ async def add_to_cart(user_id: int, cart_item: CartItemCreate, redis: Redis):
         existing_item["quantity"] = cart_item.quantity
     else:
         existing_item = cart_item.dict()
-
-    await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
-    await redis.expire(cart_key, 24*60*60)
+    cart_items = await redis.hgetall(cart_key)
+    if cart_items:
+        await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
+    else:
+        await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
+        await redis.expire(cart_key, 100)
+    return {"message": f"Product add to cart"}
 
 
 async def get_cart(user_id: int, redis: Redis):
