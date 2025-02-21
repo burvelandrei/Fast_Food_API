@@ -62,6 +62,12 @@ class BaseDO:
 class UserDO(BaseDO):
     model = User
 
+    @classmethod
+    async def get_by_email(cls, email: str, session: AsyncSession):
+        query = select(cls.model).where(cls.model.email == email)
+        result = await session.execute(query)
+        return result.scalar_one_or_none()
+
 
 class CategoryDO(BaseDO):
     model = Category
