@@ -20,4 +20,4 @@ class UserCreateTg(BaseModel):
 class UserCreateWeb(BaseModel):
     username: str
     email: EmailStr
-    hashed_password: str
+    password: str
