@@ -4,7 +4,6 @@ from typing import List
 
 class UserOut(BaseModel):
     id: int
-    username: str
     tg_id: str | None
     email: EmailStr | None
 
@@ -13,11 +12,10 @@ class UserOut(BaseModel):
 
 
 class UserCreateTg(BaseModel):
-    username: str
+    email: EmailStr
     tg_id: str
 
 
 class UserCreateWeb(BaseModel):
-    username: str
     email: EmailStr
     password: str

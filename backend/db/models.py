@@ -12,9 +12,8 @@ class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    username: Mapped[str] = mapped_column(nullable=False)
     tg_id: Mapped[str] = mapped_column(unique=True, nullable=True)
-    email: Mapped[str] = mapped_column(nullable=True)
+    email: Mapped[str] = mapped_column(nullable=False)
     hashed_password: Mapped[str] = mapped_column(nullable=False, default="")
 
     orders: Mapped[List["Order"]] = relationship(
