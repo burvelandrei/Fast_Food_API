@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.product import ProductOut
 from db.operations import ProductDO
-from dependencies import verify_api_key
 
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -13,7 +12,6 @@ router = APIRouter(prefix="/products", tags=["Products"])
 async def get_products(
     category_id: int = Query(None),
     session: AsyncSession = Depends(get_session),
-    api_key: str = Depends(verify_api_key),
 ):
     products = await ProductDO.get_all(category_id=category_id, session=session)
     return products
@@ -23,7 +21,6 @@ async def get_products(
 async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),
-    api_key: str = Depends(verify_api_key),
 ):
     product = await ProductDO.get_by_id(id=product_id, session=session)
     if product is None:
