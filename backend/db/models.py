@@ -32,7 +32,6 @@ class RefreshToken(Base):
     refresh_token: Mapped[str] = mapped_column(nullable=False)
     auth_type: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    is_active: Mapped[bool] = mapped_column(default=True)
 
     user = relationship("User", back_populates="refresh_tokens")
 
