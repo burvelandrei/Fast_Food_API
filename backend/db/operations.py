@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import User, Product, Order, OrderItem, Category
+from db.models import User, Product, Order, OrderItem, Category, RefreshToken
 
 
 class BaseDO:
@@ -67,6 +67,10 @@ class UserDO(BaseDO):
         query = select(cls.model).where(cls.model.email == email)
         result = await session.execute(query)
         return result.scalar_one_or_none()
+
+
+class RefreshTokenDO(BaseDO):
+    model = RefreshToken
 
 
 class CategoryDO(BaseDO):
