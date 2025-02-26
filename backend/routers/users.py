@@ -13,7 +13,7 @@ from services.auth import (
     get_hash_password,
     get_current_user,
 )
-from schemas.token import Token
+from schemas.token import Token,RefreshTokenRequest
 
 env = Env()
 env.read_env()
@@ -23,7 +23,6 @@ SECRET_KEY = env("SECRET_KEY")
 ALGORITHM = "HS256"
 
 router = APIRouter(prefix="/users", tags=["Users"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.post("/register")
@@ -110,7 +109,7 @@ async def tg_register(
 
 @router.post("/token/refresh")
 async def refresh_access_token(
-    refresh_token: str = Depends(oauth2_scheme),
+    token_data: RefreshTokenRequest,
     session: AsyncSession = Depends(get_session),
 ):
     invalid_refresh_token_exception = HTTPException(
@@ -118,13 +117,13 @@ async def refresh_access_token(
     )
 
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token_data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("email")
         if email is None:
             raise invalid_refresh_token_exception
 
         db_refresh_token = await RefreshTokenDO.get_by_refresh_token(
-            refresh_token=refresh_token, session=session
+            refresh_token=token_data.refresh_token, session=session
         )
         if db_refresh_token is None:
             raise invalid_refresh_token_exception
