@@ -30,7 +30,6 @@ class RefreshToken(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     refresh_token: Mapped[str] = mapped_column(nullable=False)
-    auth_type: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     user = relationship("User", back_populates="refresh_tokens")
