@@ -8,9 +8,6 @@ class CategoryOut(BaseModel):
     name: str
     products: List[ProductOut]
 
-    class Config:
-        from_attributes = True
-
 
 class CategoryCreate(BaseModel):
     name: str

@@ -7,9 +7,6 @@ class UserOut(BaseModel):
     tg_id: str | None
     email: EmailStr | None
 
-    class Config:
-        from_attributes = True
-
 
 class UserDataTg(BaseModel):
     email: EmailStr
