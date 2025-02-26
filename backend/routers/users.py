@@ -14,7 +14,7 @@ from services.auth import (
     get_hash_password,
     get_current_user,
 )
-from schemas.token import Token,RefreshTokenRequest
+from schemas.token import Token, RefreshTokenRequest
 
 env = Env()
 env.read_env()
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/register")
 async def register(
-    user_data: Union[UserDataWeb, UserDataTg], session: AsyncSession = Depends(get_session)
+    user_data: UserDataWeb | UserDataTg, session: AsyncSession = Depends(get_session)
 ):
     db_user = await UserDO.get_by_email(email=user_data.email, session=session)
 
@@ -41,7 +41,9 @@ async def register(
         if isinstance(user_data, UserDataTg) and user_data.tg_id:
             update_fields["tg_id"] = user_data.tg_id
         if update_fields:
-            db_user = await UserDO.update(session=session, id=db_user.id, **update_fields)
+            db_user = await UserDO.update(
+                session=session, id=db_user.id, **update_fields
+            )
     else:
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
@@ -106,7 +108,9 @@ async def refresh_access_token(
     )
 
     try:
-        payload = jwt.decode(token_data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token_data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM]
+        )
         email = payload.get("email")
         if email is None:
             raise invalid_refresh_token_exception
