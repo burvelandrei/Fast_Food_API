@@ -1,4 +1,5 @@
 import jwt
+from typing import Union
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,35 +27,41 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/register")
-async def register(user_web: UserDataWeb, session: AsyncSession = Depends(get_session)):
-    db_user = await UserDO.get_by_email(email=user_web.email, session=session)
+async def register(
+    user_data: Union[UserDataWeb, UserDataTg], session: AsyncSession = Depends(get_session)
+):
+    db_user = await UserDO.get_by_email(email=user_data.email, session=session)
+
     if db_user:
-        if db_user.tg_id and len(db_user.hashed_password) != 0:
+        if db_user.tg_id and len(db_user.hashed_password) > 0:
             raise HTTPException(status_code=400, detail="User already registered")
-        else:
-            hashed_password = get_hash_password(user_web.password)
-            changed_user = await UserDO.update(
-                session=session, id=db_user.id, **{"hashed_password": hashed_password}
-            )
-            user = UserOut(**changed_user.__dict__)
+        update_fields = {}
+        if isinstance(user_data, UserDataWeb) and user_data.password:
+            update_fields["hashed_password"] = get_hash_password(user_data.password)
+        if isinstance(user_data, UserDataTg) and user_data.tg_id:
+            update_fields["tg_id"] = user_data.tg_id
+        if update_fields:
+            db_user = await UserDO.update(session=session, id=db_user.id, **update_fields)
     else:
-        hashed_password = get_hash_password(user_web.password)
-        new_user = await UserDO.add(
-            session=session,
-            **{
-                "email": user_web.email,
-                "hashed_password": hashed_password,
-            }
+        if isinstance(user_data, UserDataWeb):
+            hashed_password = get_hash_password(user_data.password)
+            db_user = await UserDO.add(
+                session=session, email=user_data.email, hashed_password=hashed_password
+            )
+        elif isinstance(user_data, UserDataTg):
+            db_user = await UserDO.add(session=session, **user_data.__dict__)
+
+    if isinstance(user_data, UserDataWeb):
+        access_token = create_access_token(data={"email": user_data.email})
+        refresh_token = create_refresh_token(data={"email": user_data.email})
+        await RefreshTokenDO.add(
+            session=session, user_id=db_user.id, refresh_token=refresh_token
         )
-        user = UserOut(**new_user.__dict__)
-    access_token = create_access_token(data={"email": user_web.email})
-    refresh_token = create_refresh_token(data={"email": user_web.email})
-    await RefreshTokenDO.add(
-        session=session, **{"user_id": user.id, "refresh_token": refresh_token}
-    )
-    return Token(
-        access_token=access_token, refresh_token=refresh_token, token_type="bearer"
-    )
+        return Token(
+            access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+        )
+
+    return Response(content="User is registered", status_code=201)
 
 
 @router.post("/login")
@@ -87,24 +94,6 @@ async def logout_user(
     await RefreshTokenDO.delete_by_user_id(session=session, user_id=user.id)
 
     return Response(content="Successfully logged out", status_code=200)
-
-
-@router.post("/tg_register")
-async def tg_register(
-    user_tg: UserDataTg, session: AsyncSession = Depends(get_session)
-):
-    db_user = await UserDO.get_by_email(email=user_tg.email, session=session)
-    if db_user:
-        if db_user.tg_id and len(db_user.hashed_password) != 0:
-            raise HTTPException(status_code=400, detail="User already registered")
-        else:
-            await UserDO.update(
-                session=session, id=db_user.id, **{"tg_id": user_tg.tg_id}
-            )
-
-    else:
-        await UserDO.add(session=session, **user_tg.__dict__)
-    return Response(content="User is registered", status_code=201)
 
 
 @router.post("/token/refresh")
