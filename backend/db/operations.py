@@ -63,14 +63,61 @@ class UserDO(BaseDO):
     model = User
 
     @classmethod
+    async def add(cls, session: AsyncSession, **values):
+        new_instance = cls.model(**values)
+        session.add(new_instance)
+        try:
+            await session.commit()
+            await session.refresh(new_instance)
+        except Exception as e:
+            await session.rollback()
+            raise e
+        return new_instance
+
+    @classmethod
     async def get_by_email(cls, email: str, session: AsyncSession):
         query = select(cls.model).where(cls.model.email == email)
+        result = await session.execute(query)
+        return result.scalar_one_or_none()
+
+    @classmethod
+    async def get_by_tg_id(cls, tg_id: str, session: AsyncSession):
+        query = select(cls.model).where(cls.model.tg_id == tg_id)
         result = await session.execute(query)
         return result.scalar_one_or_none()
 
 
 class RefreshTokenDO(BaseDO):
     model = RefreshToken
+
+    @classmethod
+    async def get_by_refresh_token(cls, refresh_token: str, session: AsyncSession):
+        query = select(cls.model).where(cls.model.refresh_token == refresh_token)
+        result = await session.execute(query)
+        return result.scalar_one_or_none()
+
+    @classmethod
+    async def update_refresh_token(
+        cls,
+        user_id: int,
+        refresh_token: str,
+        session: AsyncSession,
+    ):
+        result = await session.execute(
+            select(cls.model).where(cls.model.user_id == user_id)
+        )
+        instance = result.scalar_one_or_none()
+        if not instance:
+            return None
+
+        setattr(instance, "refresh_token", refresh_token)
+
+        try:
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e
+        return instance
 
 
 class CategoryDO(BaseDO):
