@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User, Product, Order, OrderItem, Category, RefreshToken
@@ -118,6 +118,12 @@ class RefreshTokenDO(BaseDO):
             await session.rollback()
             raise e
         return instance
+
+    @classmethod
+    async def delete_by_user_id(cls, user_id: int, session: AsyncSession):
+        query = delete(cls.model).where(cls.model.user_id == user_id)
+        await session.execute(query)
+        await session.commit()
 
 
 class CategoryDO(BaseDO):

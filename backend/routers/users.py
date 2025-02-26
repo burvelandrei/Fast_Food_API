@@ -1,10 +1,8 @@
 import jwt
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from environs import Env
-from typing import Annotated
 from db.connect import get_session
 from schemas.user import UserOut, UserDataTg, UserDataWeb
 from db.operations import UserDO, RefreshTokenDO
@@ -13,6 +11,7 @@ from services.auth import (
     create_access_token,
     create_refresh_token,
     get_hash_password,
+    get_current_user,
 )
 from schemas.token import Token
 
@@ -81,6 +80,16 @@ async def login_user(
     )
 
 
+@router.post("/logout")
+async def logout_user(
+    user: UserOut = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    await RefreshTokenDO.delete_by_user_id(session=session, user_id=user.id)
+
+    return Response(content="Successfully logged out", status_code=200)
+
+
 @router.post("/tg_register")
 async def tg_register(
     user_tg: UserDataTg, session: AsyncSession = Depends(get_session)
@@ -101,7 +110,7 @@ async def tg_register(
 
 @router.post("/token/refresh")
 async def refresh_access_token(
-    refresh_token: Annotated[str, Depends(oauth2_scheme)],
+    refresh_token: str = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session),
 ):
     invalid_refresh_token_exception = HTTPException(

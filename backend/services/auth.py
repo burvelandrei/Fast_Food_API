@@ -1,6 +1,5 @@
 import jwt
 from datetime import datetime, timedelta
-from typing import Annotated
 from fastapi import HTTPException, Depends, status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
@@ -64,7 +63,7 @@ def create_refresh_token(data: dict):
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: str = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session),
 ):
     credentials_exception = HTTPException(
