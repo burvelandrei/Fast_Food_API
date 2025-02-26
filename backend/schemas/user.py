@@ -1,5 +1,4 @@
-from pydantic import BaseModel, EmailStr
-from typing import List
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserOut(BaseModel):
@@ -15,4 +14,4 @@ class UserDataTg(BaseModel):
 
 class UserDataWeb(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(max_length=8)
