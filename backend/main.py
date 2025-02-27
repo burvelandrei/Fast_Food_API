@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from routers import products, category, users, carts, orders
 
 
@@ -9,6 +10,8 @@ app.include_router(category.router)
 app.include_router(users.router)
 app.include_router(carts.router)
 app.include_router(orders.router)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 if __name__ == "__main__":
