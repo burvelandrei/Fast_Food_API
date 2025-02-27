@@ -14,9 +14,9 @@ class ProductOut(BaseModel):
 
     @computed_field
     def image_url(self) -> str | None:
-        image_path = f"{STATIC_DIR}product{self.id}.jpg"
+        image_path = f"{STATIC_DIR}product_{self.id}.jpg"
         return (
-            f"{STATIC_DIR}product{self.id}.jpg" if os.path.exists(image_path) else None
+            f"{STATIC_DIR}product_{self.id}.jpg" if os.path.exists(image_path) else None
         )
 
 
