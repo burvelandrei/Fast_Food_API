@@ -14,4 +14,4 @@ class UserDataTg(BaseModel):
 
 class UserDataWeb(BaseModel):
     email: EmailStr
-    password: str = Field(max_length=8)
+    password: str = Field(min_length=8)
