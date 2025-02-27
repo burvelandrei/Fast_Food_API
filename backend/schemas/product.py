@@ -1,4 +1,8 @@
-from pydantic import BaseModel, Field
+import os
+from pydantic import BaseModel, Field, computed_field
+
+
+STATIC_DIR = "static/products/"
 
 
 class ProductOut(BaseModel):
@@ -7,6 +11,13 @@ class ProductOut(BaseModel):
     description: str | None
     price: float
     discount: int
+
+    @computed_field
+    def image_url(self) -> str | None:
+        image_path = f"{STATIC_DIR}product{self.id}.jpg"
+        return (
+            f"{STATIC_DIR}product{self.id}.jpg" if os.path.exists(image_path) else None
+        )
 
 
 class ProductCreate(BaseModel):
