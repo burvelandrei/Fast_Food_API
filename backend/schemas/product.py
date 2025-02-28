@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from pydantic import BaseModel, Field, computed_field
 
 
@@ -20,7 +21,7 @@ class ProductOut(BaseModel):
         )
 
     @computed_field
-    def final_price(self) -> float:
+    def final_price(self) -> Decimal:
         return self.price - (self.price*(self.discount/100))
 
 

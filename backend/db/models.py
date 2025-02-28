@@ -1,6 +1,7 @@
 from typing import List
 from datetime import datetime
-from sqlalchemy import ForeignKey
+from decimal import Decimal
+from sqlalchemy import ForeignKey, DECIMAL
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -52,7 +53,7 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
-    price: Mapped[float] = mapped_column(nullable=False)
+    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     discount: Mapped[int] = mapped_column(nullable=False, default=0)
     category_id: Mapped[int] = mapped_column(
         ForeignKey("category.id", ondelete="CASCADE")
@@ -69,7 +70,7 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    total_price: Mapped[float] = mapped_column(nullable=False)
+    total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="orders")
@@ -88,6 +89,7 @@ class OrderItem(Base):
         ForeignKey("product.id", ondelete="CASCADE"), primary_key=True
     )
     quantity: Mapped[int] = mapped_column(nullable=False)
+    total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="order_items")
     product: Mapped["Product"] = relationship(back_populates="order_items")
