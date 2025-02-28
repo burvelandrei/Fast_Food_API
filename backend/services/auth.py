@@ -4,7 +4,6 @@ from fastapi import HTTPException, Depends, status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from environs import Env
-from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.token import TokenData

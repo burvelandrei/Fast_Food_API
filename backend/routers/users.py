@@ -1,7 +1,6 @@
 import jwt
-from typing import Union
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from environs import Env
 from db.connect import get_session
@@ -63,7 +62,10 @@ async def register(
             access_token=access_token, refresh_token=refresh_token, token_type="bearer"
         )
 
-    return Response(content="User is registered", status_code=201)
+    return JSONResponse(
+        content={"message": "User is registered"},
+        status_code=201,
+    )
 
 
 @router.post("/login")
@@ -95,7 +97,10 @@ async def logout_user(
 ):
     await RefreshTokenDO.delete_by_user_id(session=session, user_id=user.id)
 
-    return Response(content="Successfully logged out", status_code=200)
+    return JSONResponse(
+        content={"message": "Successfully logged out"},
+        status_code=200,
+    )
 
 
 @router.post("/token/refresh")

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.order import OrderOut
@@ -22,8 +23,14 @@ async def confirmation_order(
     if cart and cart.cart_items:
         await OrderDO.add(user_id=user.id, session=session, values=cart)
         await remove_cart(user.id, redis)
-        return {"message": "Order successfully created"}
-    return {"message": "No products in cart"}
+        return JSONResponse(
+            content={"message": "Order successfully created"},
+            status_code=201,
+        )
+    return HTTPException(
+        status_code=400,
+        detail="No products in cart",
+    )
 
 
 @router.get("/", response_model=list[OrderOut])

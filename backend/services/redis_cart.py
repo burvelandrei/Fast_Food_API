@@ -1,6 +1,7 @@
 import json
 from redis.asyncio import Redis
-from fastapi import Depends, HTTPException, Response, status
+from fastapi import Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from db.operations import ProductDO
@@ -28,7 +29,10 @@ async def add_to_cart(
     await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
     if not await redis.exists(cart_key):
         await redis.expire(cart_key, 24 * 60 * 60)
-    return Response(content="Product added to cart", status_code=201)
+    return JSONResponse(
+        content={"message": "Product added to cart"},
+        status_code=201,
+    )
 
 
 async def get_cart(
@@ -72,7 +76,10 @@ async def remove_item(user_id: int, product_id: int, redis: Redis):
     cart_key = f"cart_{user_id}"
     removed = await redis.hdel(cart_key, str(product_id))
     if removed:
-        return Response(content="Product removed from cart", status_code=200)
+        return JSONResponse(
+            content={"message": "Product removed from cart"},
+            status_code=200,
+        )
     raise HTTPException(status_code=404, detail="Product not found in cart")
 
 
@@ -80,5 +87,8 @@ async def remove_cart(user_id: int, redis: Redis):
     cart_key = f"cart_{user_id}"
     deleted = await redis.delete(cart_key)
     if deleted:
-        return Response(content="Cart successfully removed", status_code=200)
+        return JSONResponse(
+            content={"message": "Cart successfully removed"},
+            status_code=200,
+        )
     raise HTTPException(status_code=404, detail="Cart not found")
