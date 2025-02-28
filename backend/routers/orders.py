@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.order import OrderOut
 from schemas.user import UserOut
-from db.operations import OrderDO, OrderItemDO
+from db.operations import OrderDO
 from dependencies import get_redis
 from services.redis_cart import get_cart, remove_cart
 from services.auth import get_current_user
@@ -18,11 +18,11 @@ async def confirmation_order(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    cart = await get_cart(user.id, redis)
-    if cart:
+    cart = await get_cart(user.id, redis, session)
+    if cart and cart.cart_items:
         await OrderDO.add(user_id=user.id, session=session, values=cart)
         await remove_cart(user.id, redis)
-        return {"message": "Order add"}
+        return {"message": "Order successfully created"}
     return {"message": "No products in cart"}
 
 

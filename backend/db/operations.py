@@ -153,11 +153,13 @@ class OrderItemDO(BaseDO):
 
     @classmethod
     async def add_many(cls, order: int, session: AsyncSession, values: dict):
-        for item in values:
+        for item in values.cart_items:
             new_instance = cls.model(
                 order_id=order.id,
-                product_id=item["product_id"],
-                quantity=item["quantity"],
+                product_id=item.product.id,
+                name=item.product.name,
+                quantity=item.quantity,
+                total_price=item.total_price,
             )
             session.add(new_instance)
         try:
@@ -175,16 +177,14 @@ class OrderDO(BaseDO):
         query = (
             select(cls.model)
             .where(cls.model.user_id == user_id)
-            .options(
-                selectinload(cls.model.order_items).selectinload(OrderItem.product)
-            )
+            .options(selectinload(cls.model.order_items))
         )
         result = await session.execute(query)
         return result.scalars().all()
 
     @classmethod
     async def add(cls, user_id: int, session: AsyncSession, values: dict):
-        new_instance = cls.model(user_id=user_id)
+        new_instance = cls.model(user_id=user_id, total_amount=values.total_amount)
         session.add(new_instance)
         try:
             await session.flush()

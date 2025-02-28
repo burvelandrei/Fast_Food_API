@@ -6,14 +6,14 @@ from schemas.product import ProductOut
 
 
 class OrderItemOut(BaseModel):
-    product: ProductOut
+    product_id: int
+    name: str
     quantity: int
     total_price: Decimal
 
 
 class OrderOut(BaseModel):
     id: int
-    user_id: int
     order_items: List[OrderItemOut]
     total_amount: Decimal
     created_at: datetime
