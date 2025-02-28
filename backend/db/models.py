@@ -59,9 +59,6 @@ class Product(Base):
         ForeignKey("category.id", ondelete="CASCADE")
     )
 
-    order_items: Mapped[List["OrderItem"]] = relationship(
-        back_populates="product", cascade="all, delete"
-    )
     category: Mapped["Category"] = relationship(back_populates="products")
 
 
@@ -85,11 +82,9 @@ class OrderItem(Base):
     order_id: Mapped[int] = mapped_column(
         ForeignKey("order.id", ondelete="CASCADE"), primary_key=True
     )
-    product_id: Mapped[int] = mapped_column(
-        ForeignKey("product.id", ondelete="CASCADE"), primary_key=True
-    )
+    product_id: Mapped[int] = mapped_column(nullable=False, primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
     total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="order_items")
-    product: Mapped["Product"] = relationship(back_populates="order_items")
