@@ -19,6 +19,10 @@ class ProductOut(BaseModel):
             f"{STATIC_DIR}product_{self.id}.jpg" if os.path.exists(image_path) else None
         )
 
+    @computed_field
+    def final_price(self) -> float:
+        return self.price - (self.price*(self.discount/100))
+
 
 class ProductCreate(BaseModel):
     name: str
