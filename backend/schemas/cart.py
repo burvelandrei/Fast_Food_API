@@ -11,7 +11,6 @@ class CartItemOut(BaseModel):
 
 
 class CartOut(BaseModel):
-    user_id: int
     cart_items: List[CartItemOut] = []
     total_amount: Decimal
 

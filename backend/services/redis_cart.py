@@ -41,7 +41,6 @@ async def get_cart(
 
     if not cart_items:
         return CartOut(
-            user_id=user_id,
             items=[],
             total_amount=0,
         )
@@ -64,7 +63,6 @@ async def get_cart(
         )
 
     return CartOut(
-        user_id=user_id,
         cart_items=items,
         total_amount=total_amount,
     )
