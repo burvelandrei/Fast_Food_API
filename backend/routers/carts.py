@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.cart import CartItemCreate
 from schemas.user import UserOut
+from db.connect import get_session
 from dependencies import get_redis
-from services.redis_cart import add_to_cart, get_cart, get_cart_item, remove_item
+from services.redis_cart import add_to_cart, get_cart, remove_item
 from services.auth import get_current_user
 
 
@@ -14,25 +16,18 @@ async def add_item_to_cart(
     item: CartItemCreate,
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
+    session: AsyncSession = Depends(get_session),
 ):
-    return await add_to_cart(user.id, item, redis)
+    return await add_to_cart(user.id, item, redis, session)
 
 
 @router.get("/")
 async def get_cart_user(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
+    session: AsyncSession = Depends(get_session),
 ):
-    return await get_cart(user.id, redis)
-
-
-@router.get("/{product_id}")
-async def get_cart_item_user(
-    product_id: int,
-    user: UserOut = Depends(get_current_user),
-    redis=Depends(get_redis),
-):
-    return await get_cart_item(user.id, product_id, redis)
+    return await get_cart(user.id, redis, session)
 
 
 @router.delete("/{product_id}")
