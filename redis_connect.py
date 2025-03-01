@@ -1,9 +1,5 @@
 from redis.asyncio import Redis
-from fastapi import Depends, HTTPException
-from fastapi.security import APIKeyHeader
 from environs import Env
-from sqlalchemy.ext.asyncio import AsyncSession
-from db.connect import get_session
 
 
 env = Env()
