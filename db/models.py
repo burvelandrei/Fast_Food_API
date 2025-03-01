@@ -16,6 +16,7 @@ class User(Base):
     tg_id: Mapped[str] = mapped_column(unique=True, nullable=True)
     email: Mapped[str] = mapped_column(nullable=False)
     hashed_password: Mapped[str] = mapped_column(nullable=False, default="")
+    is_admin: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     orders: Mapped[List["Order"]] = relationship(
         back_populates="user", cascade="all, delete"
