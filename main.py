@@ -2,9 +2,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from routers import products, category, users, carts, orders
+from admin.view import setup_admin
 
 
 app = FastAPI(title="FastFood API")
+setup_admin(app)
 app.include_router(products.router)
 app.include_router(category.router)
 app.include_router(users.router)
