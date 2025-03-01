@@ -1,19 +1,11 @@
 import jwt
-from datetime import datetime, timedelta
-from fastapi import HTTPException, Depends, status, Request
-from fastapi.responses import JSONResponse
-from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Request
 from environs import Env
-from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
-from schemas.token import TokenData
 from db.operations import UserDO
 from starlette.responses import RedirectResponse
 from sqladmin.authentication import AuthenticationBackend
 from db.connect import AsyncSessionLocal
-from sqlalchemy import select
-from db.models import User
 from services.auth import verify_password, create_access_token
 
 env = Env()
