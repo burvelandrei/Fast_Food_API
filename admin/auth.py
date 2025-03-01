@@ -42,7 +42,6 @@ class JWTAuthBackend(AuthenticationBackend):
         return RedirectResponse(url="/admin/login", status_code=303)
 
     async def authenticate(self, request: Request) -> bool:
-        print(request.headers)
         token = request.session.get("access_token")
         if not token:
             return False
