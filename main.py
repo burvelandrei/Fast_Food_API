@@ -1,11 +1,20 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from routers import products, category, users, carts, orders
 from admin.view import setup_admin
-
+from handlers_exception import (
+    http_exception_handler,
+    validation_exception_handler,
+    global_exception_handler
+)
 
 app = FastAPI(title="FastFood API")
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, global_exception_handler)
 setup_admin(app)
 app.include_router(products.router)
 app.include_router(category.router)
