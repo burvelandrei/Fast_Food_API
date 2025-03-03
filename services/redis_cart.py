@@ -15,12 +15,12 @@ async def add_to_cart(
     redis: Redis,
     session: AsyncSession,
 ):
+    """Функция добавления продукта в корзину и создание её при отсутствии"""
     product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     cart_key = f"cart_{user_id}"
     existing_item = await redis.hget(cart_key, str(cart_item.product_id))
-
     if existing_item:
         existing_item = json.loads(existing_item)
         existing_item["quantity"] = cart_item.quantity
@@ -28,6 +28,7 @@ async def add_to_cart(
         existing_item = cart_item.dict()
     await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
     if not await redis.exists(cart_key):
+        # Устанавливаем время жизни корзины (24ч)
         await redis.expire(cart_key, 24 * 60 * 60)
     return JSONResponse(
         content={"message": "Product added to cart"},
@@ -40,6 +41,7 @@ async def get_cart(
     redis: Redis,
     session: AsyncSession,
 ):
+    """Функция для получения корзины по user_id"""
     cart_key = f"cart_{user_id}"
     cart_items = await redis.hgetall(cart_key)
 
@@ -73,6 +75,7 @@ async def get_cart(
 
 
 async def remove_item(user_id: int, product_id: int, redis: Redis):
+    """Функция для удаления продукта из корзины"""
     cart_key = f"cart_{user_id}"
     removed = await redis.hdel(cart_key, str(product_id))
     if removed:
@@ -84,6 +87,7 @@ async def remove_item(user_id: int, product_id: int, redis: Redis):
 
 
 async def remove_cart(user_id: int, redis: Redis):
+    """Функция для очистки корзины"""
     cart_key = f"cart_{user_id}"
     deleted = await redis.delete(cart_key)
     if deleted:

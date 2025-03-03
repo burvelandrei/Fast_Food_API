@@ -36,6 +36,7 @@ def get_hash_password(password):
 async def authentificate_user(
     email: str, password: str, session: AsyncSession = Depends(get_session)
 ):
+    """Функция проверки аутентификации польователя"""
     user = await UserDO.get_by_email(email=email, session=session)
     if not user:
         return False
@@ -65,6 +66,7 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session),
 ):
+    """Функция возврата юзера по access токену"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -75,14 +77,16 @@ async def get_current_user(
     )
     payload = None
     try:
+        # Пробуем декодировать по secret_key веба
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise expired_exception
     except jwt.PyJWTError:
         pass
-
+    # Если не получилось декодировать через secret_key веба
     if not payload:
         try:
+            # Пробуем декодировать по secret_key бота
             payload = jwt.decode(token, SECRET_KEY_BOT, algorithms=[ALGORITHM])
         except jwt.ExpiredSignatureError:
             raise expired_exception
@@ -93,6 +97,7 @@ async def get_current_user(
     if not email and not tg_id:
         raise credentials_exception
     token_data = TokenData(email=email, tg_id=tg_id)
+    # Проверяем пользователя в БД в зависисмости от данных которые получили из access токена
     if token_data.email:
         user = await UserDO.get_by_email(email=token_data.email, session=session)
     else:

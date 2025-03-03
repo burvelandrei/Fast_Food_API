@@ -8,6 +8,7 @@ from db.operations import CategoryDO
 router = APIRouter(prefix="/category", tags=["Category"])
 
 
+# Роутер получения всех категорий
 @router.get("/", response_model=list[CategoryOut])
 async def get_category(
     session: AsyncSession = Depends(get_session),

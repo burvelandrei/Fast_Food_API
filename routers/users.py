@@ -25,6 +25,7 @@ ALGORITHM = "HS256"
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
+# Роутер регистрации пользователя
 @router.post("/register/")
 async def register(
     user_data: UserDataWeb | UserDataTg, session: AsyncSession = Depends(get_session)
@@ -33,9 +34,19 @@ async def register(
 
     if db_user:
         update_fields = {}
-        if isinstance(user_data, UserDataWeb) and db_user.tg_id and not db_user.hashed_password:
+        # Добавляем пароль пользователю если он ещё не зарегестрирован по веб но зарегистрирован по Тг
+        if (
+            isinstance(user_data, UserDataWeb)
+            and db_user.tg_id
+            and not db_user.hashed_password
+        ):
             update_fields["hashed_password"] = get_hash_password(user_data.password)
-        elif isinstance(user_data, UserDataTg) and db_user.hashed_password and not db_user.tg_id:
+        # Добавляем tg_id пользователю если он ещё не зарегестрирован по Тг через бота но зарегистрирован по веб
+        elif (
+            isinstance(user_data, UserDataTg)
+            and db_user.hashed_password
+            and not db_user.tg_id
+        ):
             update_fields["tg_id"] = user_data.tg_id
 
         if update_fields:
@@ -43,6 +54,7 @@ async def register(
         else:
             raise HTTPException(status_code=400, detail="User already registered")
     else:
+        # Добавляем пользователя в зависимости от типа регистрации (веб или Тг)
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
             db_user = await UserDO.add(
@@ -50,7 +62,7 @@ async def register(
             )
         elif isinstance(user_data, UserDataTg):
             db_user = await UserDO.add(session=session, **user_data.__dict__)
-
+    # Пользователю веб возвращаем access и refresh токены
     if isinstance(user_data, UserDataWeb):
         access_token = create_access_token(data={"email": user_data.email})
         refresh_token = create_refresh_token(data={"email": user_data.email})
@@ -60,7 +72,7 @@ async def register(
         return Token(
             access_token=access_token, refresh_token=refresh_token, token_type="bearer"
         )
-
+    # Пользователю Тг возвращаем ответ об успешной регистрации
     return JSONResponse(
         content={"message": "User is registered"},
         status_code=201,

@@ -17,4 +17,7 @@ class CartOut(BaseModel):
 
 class CartItemCreate(BaseModel):
     product_id: int
-    quantity: int = Field(ge=1, description="Quantity must be at least 1")
+    quantity: int = Field(
+        ge=1,
+        description="Quantity must be at least 1",
+    )

@@ -11,6 +11,7 @@ from services.auth import get_current_user
 router = APIRouter(prefix="/carts", tags=["Carts"])
 
 
+# Роутер добавления продукта в корзину
 @router.post("/add/")
 async def add_item_to_cart(
     item: CartItemCreate,
@@ -21,6 +22,7 @@ async def add_item_to_cart(
     return await add_to_cart(user.id, item, redis, session)
 
 
+# Роутер получения корзины пользователя
 @router.get("/")
 async def get_cart_user(
     user: UserOut = Depends(get_current_user),
@@ -30,6 +32,7 @@ async def get_cart_user(
     return await get_cart(user.id, redis, session)
 
 
+# Роутер удаления продутка из корзины
 @router.delete("/{product_id}/")
 async def delete_item_from_cart(
     product_id: int,

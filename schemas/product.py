@@ -13,6 +13,7 @@ class ProductOut(BaseModel):
     price: float
     discount: int
 
+    # Поле для формирования пути на фото продукта
     @computed_field
     def image_url(self) -> str | None:
         image_path = f"{STATIC_DIR}product_{self.id}.jpg"
@@ -20,6 +21,7 @@ class ProductOut(BaseModel):
             f"{STATIC_DIR}product_{self.id}.jpg" if os.path.exists(image_path) else None
         )
 
+    # Поле для вычисления финальной суммы (сумма * скидку)
     @computed_field
     def final_price(self) -> Decimal:
         return self.price - (self.price*(self.discount/100))

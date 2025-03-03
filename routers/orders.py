@@ -13,6 +13,7 @@ from services.auth import get_current_user
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
+# Роутер для подтверждения заказа пользователя
 @router.post("/")
 async def confirmation_order(
     user: UserOut = Depends(get_current_user),
@@ -33,6 +34,7 @@ async def confirmation_order(
     )
 
 
+# Роутер получения всех заказов пользователя
 @router.get("/", response_model=list[OrderOut])
 async def get_all_order(
     user: UserOut = Depends(get_current_user),

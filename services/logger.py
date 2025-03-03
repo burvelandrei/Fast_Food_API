@@ -30,6 +30,7 @@ def clean_old_logs(log_dir, days=30):
 # Обработчик для перемещения логов
 class DailyRotatingFileHandler(TimedRotatingFileHandler):
     def __init__(self, log_dir, filename, **kwargs):
+        self.log_dir = log_dir
         full_path = os.path.join(log_dir, filename)
         super().__init__(
             full_path,
@@ -39,7 +40,10 @@ class DailyRotatingFileHandler(TimedRotatingFileHandler):
             encoding="utf-8",
             **kwargs,
         )
-        clean_old_logs(log_dir, days=30)
+
+    def doRollover(self):
+        super().doRollover()
+        clean_old_logs(self.log_dir, days=30)
 
 
 def get_log_filename(prefix):

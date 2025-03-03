@@ -96,6 +96,7 @@ class OrderItemAdmin(ModelView, model=OrderItem):
     ]
 
 
+# Функция для инициализации админки и подключения моделей админки
 def setup_admin(app):
     admin = Admin(
         app,

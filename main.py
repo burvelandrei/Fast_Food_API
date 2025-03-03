@@ -9,21 +9,23 @@ from services.middlewares import (
     http_exception_handler,
     validation_exception_handler,
     global_exception_handler,
-    LogRequestsMiddleware
+    LogRequestsMiddleware,
 )
 
 app = FastAPI(title="FastFood API")
+# Подключение миддлвари и обработчиков ошибок для логов
 app.add_middleware(LogRequestsMiddleware)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
+# Подключение админки и рутов
 setup_admin(app)
 app.include_router(products.router)
 app.include_router(category.router)
 app.include_router(users.router)
 app.include_router(carts.router)
 app.include_router(orders.router)
-
+# Подключение статики
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 

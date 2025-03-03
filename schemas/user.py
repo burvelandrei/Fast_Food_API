@@ -14,4 +14,7 @@ class UserDataTg(BaseModel):
 
 class UserDataWeb(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(
+        min_length=8,
+        description="Password must be more than 8 characters",
+    )

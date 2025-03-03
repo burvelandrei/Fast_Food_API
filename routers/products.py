@@ -8,6 +8,7 @@ from db.operations import ProductDO
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
+# Роутер получения всех продуктов (если category=None то выводит все продукты)
 @router.get("/", response_model=list[ProductOut])
 async def get_products(
     category_id: int = Query(None),
@@ -17,6 +18,7 @@ async def get_products(
     return products
 
 
+# Роутер получения продукта по id
 @router.get("/{product_id}/", response_model=ProductOut)
 async def get_product(
     product_id: int,
