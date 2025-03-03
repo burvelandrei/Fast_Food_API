@@ -5,13 +5,15 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from routers import products, category, users, carts, orders
 from admin.view import setup_admin
-from services.handlers_exception import (
+from services.middlewares import (
     http_exception_handler,
     validation_exception_handler,
-    global_exception_handler
+    global_exception_handler,
+    LogRequestsMiddleware
 )
 
 app = FastAPI(title="FastFood API")
+app.add_middleware(LogRequestsMiddleware)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
