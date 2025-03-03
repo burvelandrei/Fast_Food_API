@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from routers import products, category, users, carts, orders
 from admin.view import setup_admin
-from handlers_exception import (
+from services.handlers_exception import (
     http_exception_handler,
     validation_exception_handler,
     global_exception_handler
