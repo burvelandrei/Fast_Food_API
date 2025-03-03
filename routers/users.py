@@ -32,17 +32,16 @@ async def register(
     db_user = await UserDO.get_by_email(email=user_data.email, session=session)
 
     if db_user:
-        if db_user.tg_id and len(db_user.hashed_password) > 0:
-            raise HTTPException(status_code=400, detail="User already registered")
         update_fields = {}
-        if isinstance(user_data, UserDataWeb) and user_data.password:
+        if isinstance(user_data, UserDataWeb) and db_user.tg_id and not db_user.hashed_password:
             update_fields["hashed_password"] = get_hash_password(user_data.password)
-        if isinstance(user_data, UserDataTg) and user_data.tg_id:
+        elif isinstance(user_data, UserDataTg) and db_user.hashed_password and not db_user.tg_id:
             update_fields["tg_id"] = user_data.tg_id
+
         if update_fields:
-            db_user = await UserDO.update(
-                session=session, id=db_user.id, **update_fields
-            )
+            await UserDO.update(session=session, id=db_user.id, **update_fields)
+        else:
+            raise HTTPException(status_code=400, detail="User already registered")
     else:
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
@@ -68,6 +67,7 @@ async def register(
     )
 
 
+# Роутер входа пользователя
 @router.post("/login/")
 async def login_user(
     user_web: UserDataWeb,
@@ -90,6 +90,7 @@ async def login_user(
     )
 
 
+# Роутер выхода пользователя
 @router.post("/logout/")
 async def logout_user(
     user: UserOut = Depends(get_current_user),
@@ -103,6 +104,7 @@ async def logout_user(
     )
 
 
+# Роутер обновления access токена
 @router.post("/token/refresh/")
 async def refresh_access_token(
     token_data: RefreshTokenRequest,
