@@ -25,6 +25,9 @@ class User(Base):
         back_populates="user", cascade="all, delete"
     )
 
+    def __repr__(self):
+        return str(self.id)
+
 
 class RefreshToken(Base):
     __tablename__ = "refresh_token"
@@ -36,6 +39,9 @@ class RefreshToken(Base):
 
     user = relationship("User", back_populates="refresh_tokens")
 
+    def __repr__(self):
+        return str(self.id)
+
 
 class Category(Base):
     __tablename__ = "category"
@@ -46,6 +52,9 @@ class Category(Base):
     products: Mapped[List["Product"]] = relationship(
         back_populates="category", cascade="all, delete"
     )
+
+    def __repr__(self):
+        return f"{self.id} - {self.name}"
 
 
 class Product(Base):
@@ -62,6 +71,9 @@ class Product(Base):
 
     category: Mapped["Category"] = relationship(back_populates="products")
 
+    def __repr__(self):
+        return f"{self.id} - {self.name}"
+
 
 class Order(Base):
     __tablename__ = "order"
@@ -76,6 +88,9 @@ class Order(Base):
         back_populates="order", cascade="all, delete"
     )
 
+    def __repr__(self):
+        return str(self.id)
+
 
 class OrderItem(Base):
     __tablename__ = "order_item"
@@ -89,3 +104,6 @@ class OrderItem(Base):
     total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="order_items")
+
+    def __repr__(self):
+        return str(self.name)

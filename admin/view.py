@@ -17,9 +17,14 @@ class UserAdmin(ModelView, model=User):
         "tg_id",
     ]
     column_sortable_list = ["id"]
-    form_excluded_columns = [
+    form_columns = [
+        "id",
+        "email",
+        "tg_id",
+        "hashed_password",
         "orders",
         "refresh_tokens",
+        "is_admin",
     ]
     can_create = False
 
@@ -54,7 +59,6 @@ class ProductAdmin(ModelView, model=Product):
         "id",
         "name",
     ]
-    form_excluded_columns = ["category"]
 
 
 class OrderAdmin(ModelView, model=Order):
