@@ -6,7 +6,6 @@ from schemas.product import ProductOut
 class CategoryOut(BaseModel):
     id: int
     name: str
-    products: List[ProductOut]
 
 
 class CategoryCreate(BaseModel):
