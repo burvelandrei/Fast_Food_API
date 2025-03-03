@@ -14,7 +14,7 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 # Роутер для подтверждения заказа пользователя
-@router.post("/")
+@router.post("/confirmation/")
 async def confirmation_order(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
