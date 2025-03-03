@@ -70,7 +70,7 @@ logging_config = {
             "()": DailyRotatingFileHandler,
             "log_dir": LOG_DIR_GENERAL,
             "filename": get_log_filename("app_log"),
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "default",
         },
         "error_file": {
@@ -83,9 +83,9 @@ logging_config = {
         },
         "console": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "default",
         },
     },
-    "root": {"level": "DEBUG", "handlers": ["file", "error_file", "console"]},
+    "root": {"level": "INFO", "handlers": ["file", "error_file", "console"]},
 }
