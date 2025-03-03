@@ -17,7 +17,7 @@ async def get_products(
     return products
 
 
-@router.get("/{product_id}", response_model=ProductOut)
+@router.get("/{product_id}/", response_model=ProductOut)
 async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),

@@ -25,7 +25,7 @@ ALGORITHM = "HS256"
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.post("/register")
+@router.post("/register/")
 async def register(
     user_data: UserDataWeb | UserDataTg, session: AsyncSession = Depends(get_session)
 ):
@@ -68,7 +68,7 @@ async def register(
     )
 
 
-@router.post("/login")
+@router.post("/login/")
 async def login_user(
     user_web: UserDataWeb,
     session: AsyncSession = Depends(get_session),
@@ -90,7 +90,7 @@ async def login_user(
     )
 
 
-@router.post("/logout")
+@router.post("/logout/")
 async def logout_user(
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -103,7 +103,7 @@ async def logout_user(
     )
 
 
-@router.post("/token/refresh")
+@router.post("/token/refresh/")
 async def refresh_access_token(
     token_data: RefreshTokenRequest,
     session: AsyncSession = Depends(get_session),

@@ -11,7 +11,7 @@ from services.auth import get_current_user
 router = APIRouter(prefix="/carts", tags=["Carts"])
 
 
-@router.post("/add")
+@router.post("/add/")
 async def add_item_to_cart(
     item: CartItemCreate,
     user: UserOut = Depends(get_current_user),
@@ -30,7 +30,7 @@ async def get_cart_user(
     return await get_cart(user.id, redis, session)
 
 
-@router.delete("/{product_id}")
+@router.delete("/{product_id}/")
 async def delete_item_from_cart(
     product_id: int,
     user: UserOut = Depends(get_current_user),
