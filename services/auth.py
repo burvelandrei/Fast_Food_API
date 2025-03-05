@@ -93,15 +93,11 @@ async def get_current_user(
         except jwt.PyJWTError:
             raise credentials_exception
     email = payload.get("email")
-    tg_id = payload.get("tg_id")
-    if not email and not tg_id:
+    if not email:
         raise credentials_exception
-    token_data = TokenData(email=email, tg_id=tg_id)
-    # Проверяем пользователя в БД в зависисмости от данных которые получили из access токена
-    if token_data.email:
-        user = await UserDO.get_by_email(email=token_data.email, session=session)
-    else:
-        user = await UserDO.get_by_tg_id(tg_id=token_data.tg_id, session=session)
+    token_data = TokenData(email=email)
+    # Проверяем пользователя в БД по email
+    user = await UserDO.get_by_email(email=token_data.email, session=session)
     if user is None:
         raise credentials_exception
     return user

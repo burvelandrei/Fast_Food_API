@@ -2,8 +2,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class TokenData(BaseModel):
-    email: EmailStr | None
-    tg_id: str | None
+    email: EmailStr
 
 
 class Token(BaseModel):
