@@ -63,8 +63,12 @@ async def register(
             db_user = await UserDO.add(session=session, **user_data.__dict__)
     # Пользователю веб возвращаем access и refresh токены
     if isinstance(user_data, UserDataWeb):
-        access_token = create_access_token(data={"email": user_data.email})
-        refresh_token = create_refresh_token(data={"email": user_data.email})
+        access_token = create_access_token(
+            data={"email": user_data.email}, secret_key=SECRET_KEY
+        )
+        refresh_token = create_refresh_token(
+            data={"email": user_data.email}, secret_key=SECRET_KEY
+        )
         return Token(
             access_token=access_token, refresh_token=refresh_token, token_type="bearer"
         )
@@ -88,8 +92,12 @@ async def login_user(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"email": user.email})
-    refresh_token = create_refresh_token(data={"email": user.email})
+    access_token = create_access_token(
+        data={"email": user.email}, secret_key=SECRET_KEY
+    )
+    refresh_token = create_refresh_token(
+        data={"email": user.email}, secret_key=SECRET_KEY
+    )
     return Token(
         access_token=access_token, refresh_token=refresh_token, token_type="bearer"
     )
@@ -131,5 +139,5 @@ async def refresh_access_token(
     except jwt.PyJWTError:
         raise invalid_refresh_token_exception
 
-    new_access_token = create_access_token(data={"email": email})
+    new_access_token = create_access_token(data={"email": email}, secret_key=SECRET_KEY)
     return {"access_token": new_access_token, "token_type": "bearer"}
