@@ -23,7 +23,7 @@ async def add_to_cart(
     session: AsyncSession,
 ):
     """Функция добавления продукта в корзину и создание её при отсутствии"""
-    logger.info(f"Adding product {cart_item.product_id} to user {user_id}'s cart")
+    logger.info(f"Adding product {cart_item.product_id} to user_id {user_id} cart")
     product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
     if not product:
         logger.warning(f"Product {cart_item.product_id} not found")
@@ -87,7 +87,7 @@ async def get_cart(
 
 async def remove_item(user_id: int, product_id: int, redis: Redis):
     """Функция для удаления продукта из корзины"""
-    logger.info(f"Removing product {product_id} from user {user_id}'s cart")
+    logger.info(f"Removing product {product_id} from user_id {user_id} cart")
     cart_key = f"cart_{user_id}"
     removed = await redis.hdel(cart_key, str(product_id))
     if removed:

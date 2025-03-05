@@ -31,4 +31,6 @@ class LogRequestsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         logger.info(f"{request.method} Path: {request.url.path}")
         response = await call_next(request)
+        if response.status_code < 400:
+            logger.info(f"Response Status: {response.status_code} | Path: {request.url.path}")
         return response

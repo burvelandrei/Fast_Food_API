@@ -14,10 +14,10 @@ from services.middlewares import (
 
 app = FastAPI(title="FastFood API")
 # Подключение миддлвари и обработчиков ошибок для логов
+app.add_middleware(LogRequestsMiddleware)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
-app.add_middleware(LogRequestsMiddleware)
 # Подключение админки и рутов
 setup_admin(app)
 app.include_router(products.router)
