@@ -21,23 +21,6 @@ class User(Base):
     orders: Mapped[List["Order"]] = relationship(
         back_populates="user", cascade="all, delete"
     )
-    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
-        back_populates="user", cascade="all, delete"
-    )
-
-    def __repr__(self):
-        return str(self.id)
-
-
-class RefreshToken(Base):
-    __tablename__ = "refresh_token"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    refresh_token: Mapped[str] = mapped_column(nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-
-    user = relationship("User", back_populates="refresh_tokens")
 
     def __repr__(self):
         return str(self.id)

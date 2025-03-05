@@ -3,7 +3,7 @@ import logging.config
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import User, Product, Order, OrderItem, Category, RefreshToken
+from db.models import User, Product, Order, OrderItem, Category
 from services.logger import logging_config
 
 
@@ -13,6 +13,7 @@ logger = logging.getLogger("db_operations")
 
 class BaseDO:
     """Базовый класс с операциями к БД"""
+
     model = None
 
     @classmethod
@@ -84,6 +85,7 @@ class BaseDO:
 
 class UserDO(BaseDO):
     """Класс c операциями для модели User"""
+
     model = User
 
     @classmethod
@@ -103,57 +105,15 @@ class UserDO(BaseDO):
         return result.scalar_one_or_none()
 
 
-class RefreshTokenDO(BaseDO):
-    """Класс c операциями для модели RefreshToken"""
-    model = RefreshToken
-
-    @classmethod
-    async def get_by_refresh_token(cls, refresh_token: str, session: AsyncSession):
-        """Получение элементов из БД по refresh_token"""
-        logger.info(f"Fetching RefreshToken by token")
-        query = select(cls.model).where(cls.model.refresh_token == refresh_token)
-        result = await session.execute(query)
-        return result.scalar_one_or_none()
-
-    @classmethod
-    async def update_refresh_token(
-        cls, user_id: int, refresh_token: str, session: AsyncSession
-    ):
-        """Обновление refresh_token для user_id"""
-        logger.info(f"Updating RefreshToken for user_id {user_id} with new token")
-        query = select(cls.model).where(cls.model.user_id == user_id)
-        result = await session.execute(query)
-        instance = result.scalar_one_or_none()
-        if not instance:
-            logger.warning(f"No RefreshToken found for user_id {user_id}")
-            return None
-        instance.refresh_token = refresh_token
-        try:
-            await session.commit()
-            logger.info(f"Updated RefreshToken for user_id {user_id}")
-            await session.refresh(instance)
-        except Exception as e:
-            await session.rollback()
-            logger.error(f"Error updating RefreshToken: {e}")
-            raise e
-        return instance
-
-    @classmethod
-    async def delete_by_user_id(cls, user_id: int, session: AsyncSession):
-        """Удаление refresh_token для user_id"""
-        logger.info(f"Deleting RefreshToken for user_id {user_id}")
-        query = delete(cls.model).where(cls.model.user_id == user_id)
-        await session.execute(query)
-        await session.commit()
-
-
 class CategoryDO(BaseDO):
     """Класс c операциями для модели Category"""
+
     model = Category
 
 
 class ProductDO(BaseDO):
     """Класс c операциями для модели Product"""
+
     model = Product
 
     @classmethod
@@ -169,6 +129,7 @@ class ProductDO(BaseDO):
 
 class OrderItemDO(BaseDO):
     """Класс c операциями для модели OrderItem"""
+
     model = OrderItem
 
     @classmethod
@@ -195,6 +156,7 @@ class OrderItemDO(BaseDO):
 
 class OrderDO(BaseDO):
     """Класс c операциями для модели Order"""
+
     model = Order
 
     @classmethod

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from environs import Env
 from db.connect import get_session
 from schemas.user import UserOut, UserDataTg, UserDataWeb
-from db.operations import UserDO, RefreshTokenDO
+from db.operations import UserDO
 from services.auth import (
     authentificate_user,
     create_access_token,
@@ -31,7 +31,6 @@ async def register(
     user_data: UserDataWeb | UserDataTg, session: AsyncSession = Depends(get_session)
 ):
     db_user = await UserDO.get_by_email(email=user_data.email, session=session)
-
     if db_user:
         update_fields = {}
         # Добавляем пароль пользователю если он ещё не зарегестрирован по веб но зарегистрирован по Тг
@@ -66,9 +65,6 @@ async def register(
     if isinstance(user_data, UserDataWeb):
         access_token = create_access_token(data={"email": user_data.email})
         refresh_token = create_refresh_token(data={"email": user_data.email})
-        await RefreshTokenDO.add(
-            session=session, user_id=db_user.id, refresh_token=refresh_token
-        )
         return Token(
             access_token=access_token, refresh_token=refresh_token, token_type="bearer"
         )
@@ -94,9 +90,6 @@ async def login_user(
         )
     access_token = create_access_token(data={"email": user.email})
     refresh_token = create_refresh_token(data={"email": user.email})
-    await RefreshTokenDO.update_refresh_token(
-        session=session, user_id=user.id, refresh_token=refresh_token
-    )
     return Token(
         access_token=access_token, refresh_token=refresh_token, token_type="bearer"
     )
@@ -108,8 +101,6 @@ async def logout_user(
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    await RefreshTokenDO.delete_by_user_id(session=session, user_id=user.id)
-
     return JSONResponse(
         content={"message": "Successfully logged out"},
         status_code=200,
@@ -133,13 +124,6 @@ async def refresh_access_token(
         email = payload.get("email")
         if email is None:
             raise invalid_refresh_token_exception
-
-        db_refresh_token = await RefreshTokenDO.get_by_refresh_token(
-            refresh_token=token_data.refresh_token, session=session
-        )
-        if db_refresh_token is None:
-            raise invalid_refresh_token_exception
-
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token has expired"
