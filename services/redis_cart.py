@@ -13,7 +13,7 @@ from services.logger import logging_config
 
 
 logging.config.dictConfig(logging_config)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("redis_operations")
 
 
 async def add_to_cart(

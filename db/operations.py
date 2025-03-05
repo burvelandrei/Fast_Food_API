@@ -19,18 +19,30 @@ class BaseDO:
     @classmethod
     async def get_all(cls, session: AsyncSession):
         """Получить все элементы из БД"""
-        logger.info(f"Fetching all records for {cls.model.__name__}")
-        query = select(cls.model)
-        result = await session.execute(query)
-        return result.scalars().all()
+        try:
+            logger.info(f"Fetching all records for {cls.model.__name__}")
+            query = select(cls.model)
+            result = await session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching all records for {cls.model.__name__}: {e}",
+            )
+            raise e
 
     @classmethod
     async def get_by_id(cls, session: AsyncSession, id: int):
         """Получить элементы по id или вернуть None если нет"""
-        logger.info(f"Fetching {cls.model.__name__} with id {id}")
-        query = select(cls.model).where(cls.model.id == id)
-        result = await session.execute(query)
-        return result.scalar_one_or_none()
+        try:
+            logger.info(f"Fetching {cls.model.__name__} with id {id}")
+            query = select(cls.model).where(cls.model.id == id)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching {cls.model.__name__} with id {id}: {e}",
+            )
+            raise e
 
     @classmethod
     async def add(cls, session: AsyncSession, **values):
@@ -91,18 +103,30 @@ class UserDO(BaseDO):
     @classmethod
     async def get_by_email(cls, email: str, session: AsyncSession):
         """Получить элементы user по email"""
-        logger.info(f"Fetching User by email")
-        query = select(cls.model).where(cls.model.email == email)
-        result = await session.execute(query)
-        return result.scalar_one_or_none()
+        try:
+            logger.info(f"Fetching User by email")
+            query = select(cls.model).where(cls.model.email == email)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching User by email: {e}",
+            )
+            raise e
 
     @classmethod
     async def get_by_tg_id(cls, tg_id: str, session: AsyncSession):
         """Получить элементы user по tg_id"""
-        logger.info(f"Fetching User by Telegram ID")
-        query = select(cls.model).where(cls.model.tg_id == tg_id)
-        result = await session.execute(query)
-        return result.scalar_one_or_none()
+        try:
+            logger.info(f"Fetching User by Telegram ID")
+            query = select(cls.model).where(cls.model.tg_id == tg_id)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching User by Telegram ID: {e}",
+            )
+            raise e
 
 
 class CategoryDO(BaseDO):
@@ -119,12 +143,18 @@ class ProductDO(BaseDO):
     @classmethod
     async def get_all(cls, category_id: int, session: AsyncSession):
         """Получение products для category_id"""
-        logger.info(f"Fetching all products for category_id {category_id}")
-        query = select(cls.model)
-        if category_id:
-            query = query.where(cls.model.category_id == category_id)
-        result = await session.execute(query)
-        return result.scalars().all()
+        try:
+            logger.info(f"Fetching all products for category_id {category_id}")
+            query = select(cls.model)
+            if category_id:
+                query = query.where(cls.model.category_id == category_id)
+            result = await session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching products for category_id {category_id}: {e}",
+            )
+            raise e
 
 
 class OrderItemDO(BaseDO):
@@ -162,14 +192,20 @@ class OrderDO(BaseDO):
     @classmethod
     async def get_all(cls, user_id: int, session: AsyncSession):
         """Получение всех orders для user_id"""
-        logger.info(f"Fetching all Order for user ID {user_id}")
-        query = (
-            select(cls.model)
-            .where(cls.model.user_id == user_id)
-            .options(selectinload(cls.model.order_items))
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
+        try:
+            logger.info(f"Fetching all Order for user ID {user_id}")
+            query = (
+                select(cls.model)
+                .where(cls.model.user_id == user_id)
+                .options(selectinload(cls.model.order_items))
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching orders for user ID {user_id}: {e}",
+            )
+            raise e
 
     @classmethod
     async def add(cls, user_id: int, session: AsyncSession, values: dict):
