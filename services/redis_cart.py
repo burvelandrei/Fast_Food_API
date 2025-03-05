@@ -35,10 +35,10 @@ async def add_to_cart(
         existing_item["quantity"] = cart_item.quantity
     else:
         existing_item = cart_item.dict()
+    cart_items = await redis.exists(cart_key)
     await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
-    if not await redis.exists(cart_key):
-        # Устанавливаем время жизни корзины (24ч)
-        await redis.expire(cart_key, 24 * 60 * 60)
+    if not cart_items:
+        await redis.expire(cart_key, 24*60*60)
     return JSONResponse(
         content={"message": "Product added to cart"},
         status_code=201,
