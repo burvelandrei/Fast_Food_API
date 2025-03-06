@@ -21,8 +21,7 @@ ALGORITHM = "HS256"
 class JWTAuthBackend(AuthenticationBackend):
     """Класс аутентификации в sqladmin"""
 
-    def __init__(self, secret_key):
-        super().__init__(secret_key)
+    def __init__(self):
         self.middlewares = [
             Middleware(CookieMiddleware),
         ]
@@ -91,8 +90,9 @@ class JWTAuthBackend(AuthenticationBackend):
                         data={"email": payload["email"]},
                         secret_key=SECRET_KEY_ADMIN,
                     )
-                    request.session.update(
-                        {"access_token": new_access_token},
+                    request.scope["set_cookie"](
+                        "access_token",
+                        new_access_token,
                     )
                     return True
                 except jwt.ExpiredSignatureError:
@@ -103,4 +103,4 @@ class JWTAuthBackend(AuthenticationBackend):
             return False
 
 
-admin_auth = JWTAuthBackend(secret_key=SECRET_KEY_ADMIN)
+admin_auth = JWTAuthBackend()
