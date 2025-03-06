@@ -7,6 +7,8 @@ from starlette.responses import RedirectResponse
 from sqladmin.authentication import AuthenticationBackend
 from db.connect import AsyncSessionLocal
 from services.auth import verify_password, create_access_token, create_refresh_token
+from admin.middllwares import CookieMiddleware
+from starlette.middleware import Middleware
 
 env = Env()
 env.read_env()
@@ -18,6 +20,12 @@ ALGORITHM = "HS256"
 
 class JWTAuthBackend(AuthenticationBackend):
     """Класс аутентификации в sqladmin"""
+
+    def __init__(self, secret_key):
+        super().__init__(secret_key)
+        self.middlewares = [
+            Middleware(CookieMiddleware),
+        ]
 
     async def login(self, request: Request):
         form = await request.form()
@@ -44,21 +52,27 @@ class JWTAuthBackend(AuthenticationBackend):
             data={"email": email},
             secret_key=SECRET_KEY_ADMIN,
         )
-        # Зписываем в сессию токены
-        request.session.update(
-            {"access_token": access_token, "refresh_token": refresh_token}
+        # устанавливаем cookie в scope
+        request.scope["set_cookie"](
+            "access_token",
+            access_token,
+        )
+        request.scope["set_cookie"](
+            "refresh_token",
+            refresh_token,
+            max_age=7 * 24 * 60 * 60,
         )
 
         return True
 
-    async def logout(self, request: Request) -> RedirectResponse:
-        request.session.pop("access_token", None)
-        request.session.pop("refresh_token", None)
+    async def logout(self, request: Request):
+        request.scope["set_cookie"]("access_token", "", max_age=0)
+        request.scope["set_cookie"]("refresh_token", "", max_age=0)
         return False
 
-    async def authenticate(self, request: Request) -> bool:
-        token = request.session.get("access_token")
-        refresh_token = request.session.get("refresh_token")
+    async def authenticate(self, request: Request):
+        token = request.cookies.get("access_token")
+        refresh_token = request.cookies.get("refresh_token")
 
         if not token:
             return False
