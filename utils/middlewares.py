@@ -4,7 +4,7 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
-from services.logger import logging_config
+from utils.logger import logging_config
 
 
 logging.config.dictConfig(logging_config)

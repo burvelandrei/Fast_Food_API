@@ -9,7 +9,7 @@ from db.connect import get_session
 from db.operations import ProductDO
 from schemas.cart import CartItemCreate, CartItemOut, CartOut
 from schemas.product import ProductOut
-from services.logger import logging_config
+from utils.logger import logging_config
 
 
 logging.config.dictConfig(logging_config)

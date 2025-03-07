@@ -4,7 +4,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User, Product, Order, OrderItem, Category
-from services.logger import logging_config
+from utils.logger import logging_config
 
 
 logging.config.dictConfig(logging_config)

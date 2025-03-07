@@ -1,7 +1,7 @@
 import os
 from decimal import Decimal
 from pydantic import BaseModel, Field, computed_field
-from services.s3_utils import check_file_exists
+from utils.s3_utils import check_file_exists
 
 
 STATIC_DIR = "static/products/"
