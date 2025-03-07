@@ -48,6 +48,7 @@ class Product(Base):
     description: Mapped[str] = mapped_column(nullable=True)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     discount: Mapped[int] = mapped_column(nullable=False, default=0)
+    photo_name: Mapped[str] = mapped_column(nullable=False)
     category_id: Mapped[int] = mapped_column(
         ForeignKey("category.id", ondelete="CASCADE")
     )
