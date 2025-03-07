@@ -55,6 +55,7 @@ class JWTAuthBackend(AuthenticationBackend):
         request.scope["set_cookie"](
             "access_token",
             access_token,
+            max_age=7 * 24 * 60 * 60,
         )
         request.scope["set_cookie"](
             "refresh_token",
@@ -70,14 +71,12 @@ class JWTAuthBackend(AuthenticationBackend):
         return False
 
     async def authenticate(self, request: Request):
-        token = request.cookies.get("access_token")
+        access_token = request.cookies.get("access_token")
         refresh_token = request.cookies.get("refresh_token")
-
-        if not token:
+        if not access_token:
             return False
-
         try:
-            jwt.decode(token, SECRET_KEY_ADMIN, algorithms=[ALGORITHM])
+            jwt.decode(access_token, SECRET_KEY_ADMIN, algorithms=[ALGORITHM])
             return True
         except jwt.ExpiredSignatureError:
             # если токен access истёк пробуем обновить через refresh
@@ -93,6 +92,7 @@ class JWTAuthBackend(AuthenticationBackend):
                     request.scope["set_cookie"](
                         "access_token",
                         new_access_token,
+                        max_age=7 * 24 * 60 * 60,
                     )
                     return True
                 except jwt.ExpiredSignatureError:
