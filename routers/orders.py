@@ -8,6 +8,7 @@ from db.operations import OrderDO
 from utils.redis_connect import get_redis
 from services.redis_cart import get_cart, remove_cart
 from services.auth import get_current_user
+from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -36,6 +37,7 @@ async def confirmation_order(
 
 # Роутер получения всех заказов пользователя
 @router.get("/", response_model=list[OrderOut])
+@cache(expire=20)
 async def get_all_order(
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),

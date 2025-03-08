@@ -1,6 +1,5 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from routers import products, category, users, carts, orders
@@ -11,8 +10,10 @@ from utils.middlewares import (
     global_exception_handler,
     LogRequestsMiddleware,
 )
+from utils.cache_manager import lifespan
 
-app = FastAPI(title="FastFood API")
+
+app = FastAPI(title="FastFood API", lifespan=lifespan)
 # Подключение миддлвари и обработчиков ошибок для логов
 app.add_middleware(LogRequestsMiddleware)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)

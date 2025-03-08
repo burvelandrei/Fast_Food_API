@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.product import ProductOut
 from db.operations import ProductDO
+from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -10,6 +11,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 # Роутер получения всех продуктов (если category=None то выводит все продукты)
 @router.get("/", response_model=list[ProductOut])
+@cache(expire=60)
 async def get_products(
     category_id: int = Query(None),
     session: AsyncSession = Depends(get_session),
@@ -20,6 +22,7 @@ async def get_products(
 
 # Роутер получения продукта по id
 @router.get("/{product_id}/", response_model=ProductOut)
+@cache(expire=60)
 async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),

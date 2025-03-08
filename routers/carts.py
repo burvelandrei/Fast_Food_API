@@ -6,6 +6,7 @@ from db.connect import get_session
 from utils.redis_connect import get_redis
 from services.redis_cart import add_to_cart, get_cart, remove_item
 from services.auth import get_current_user
+from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/carts", tags=["Carts"])
@@ -24,6 +25,7 @@ async def add_item_to_cart(
 
 # Роутер получения корзины пользователя
 @router.get("/")
+@cache(expire=10)
 async def get_cart_user(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
