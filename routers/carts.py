@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.cart import CartItemCreate
 from schemas.user import UserOut
 from db.connect import get_session
-from redis_connect import get_redis
+from utils.redis_connect import get_redis
 from services.redis_cart import add_to_cart, get_cart, remove_item
 from services.auth import get_current_user
 

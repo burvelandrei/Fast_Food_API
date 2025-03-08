@@ -5,7 +5,7 @@ from db.connect import get_session
 from schemas.order import OrderOut
 from schemas.user import UserOut
 from db.operations import OrderDO
-from redis_connect import get_redis
+from utils.redis_connect import get_redis
 from services.redis_cart import get_cart, remove_cart
 from services.auth import get_current_user
 
