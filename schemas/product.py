@@ -1,5 +1,5 @@
 import os
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pydantic import BaseModel, Field, computed_field
 from utils.s3_utils import check_file_exists
 
@@ -11,7 +11,7 @@ class ProductOut(BaseModel):
     id: int
     name: str
     description: str | None
-    price: float
+    price: Decimal
     discount: int
     photo_name: str
 
@@ -24,7 +24,9 @@ class ProductOut(BaseModel):
     # Поле для вычисления финальной суммы (сумма * скидку)
     @computed_field
     def final_price(self) -> Decimal:
-        return self.price - (self.price * (self.discount / 100))
+        discount_decimal = Decimal(self.discount) / Decimal(100)
+        final_price = self.price - (self.price * discount_decimal)
+        return final_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class ProductCreate(BaseModel):
