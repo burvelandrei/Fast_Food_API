@@ -208,6 +208,25 @@ class OrderDO(BaseDO):
             raise e
 
     @classmethod
+    async def get_by_id(cls, order_id: int, user_id: int, session: AsyncSession):
+        """Получение заказа по ID для указанного пользователя"""
+        logger.info(f"Fetching order (ID: {order_id}) for user (ID: {user_id})")
+        try:
+            query = (
+                select(cls.model)
+                .where(cls.model.id == order_id, cls.model.user_id == user_id)
+                .options(selectinload(cls.model.order_items))
+            )
+            result = await session.execute(query)
+            order = result.scalar_one_or_none()
+            return order
+        except Exception as e:
+            logger.exception(
+                f"Error fetching order (ID: {order_id}) for user (ID: {user_id}): {e}"
+            )
+            raise e
+
+    @classmethod
     async def add(cls, user_id: int, session: AsyncSession, values: dict):
         """Добавление order для user_id"""
         logger.info(f"Creating new order for user_id {user_id}")

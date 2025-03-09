@@ -38,9 +38,23 @@ async def confirmation_order(
 # Роутер получения всех заказов пользователя
 @router.get("/", response_model=list[OrderOut])
 @cache(expire=20)
-async def get_all_order(
+async def get_all_orders(
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    orders = await OrderDO.get_all(user.id, session)
+    orders = await OrderDO.get_all(user_id=user.id, session=session)
     return orders
+
+
+# Роутер получения заказа пользователя
+@router.get("/{order_id}/", response_model=OrderOut)
+@cache(expire=60)
+async def get_order(
+    order_id: int,
+    user: UserOut = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    order = await OrderDO.get_by_id(
+        order_id=order_id, user_id=user.id, session=session
+    )
+    return order
