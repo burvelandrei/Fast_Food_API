@@ -9,6 +9,7 @@ from services.redis_cart import (
     get_cart,
     get_cart_item,
     remove_item,
+    remove_cart,
     update_cart_item,
 )
 from services.auth import get_current_user
@@ -71,3 +72,12 @@ async def delete_item_from_cart(
     redis=Depends(get_redis),
 ):
     return await remove_item(user.id, product_id, redis)
+
+
+# Роутер очистки корзины
+@router.delete("/")
+async def delete_cart(
+    user: UserOut = Depends(get_current_user),
+    redis=Depends(get_redis),
+):
+    return await remove_cart(user.id, redis)
