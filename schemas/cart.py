@@ -15,7 +15,7 @@ class CartOut(BaseModel):
     total_amount: Decimal
 
 
-class CartItemCreate(BaseModel):
+class CartItemModify(BaseModel):
     product_id: int
     quantity: int = Field(
         ge=1,
