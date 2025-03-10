@@ -1,6 +1,6 @@
 import logging
 import logging.config
-from sqlalchemy import select, delete
+from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User, Product, Order, OrderItem, Category
@@ -198,6 +198,7 @@ class OrderDO(BaseDO):
                 select(cls.model)
                 .where(cls.model.user_id == user_id)
                 .options(selectinload(cls.model.order_items))
+                .order_by(desc(cls.model.created_at))
             )
             result = await session.execute(query)
             return result.scalars().all()
