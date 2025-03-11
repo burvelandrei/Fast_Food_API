@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from environs import Env
+from redis.asyncio import Redis
 from db.connect import get_session
 from schemas.user import UserOut, UserDataTg, UserDataWeb
 from db.operations import UserDO
@@ -12,8 +13,13 @@ from services.auth import (
     create_refresh_token,
     get_hash_password,
     get_current_user,
+    create_email_confirmation_token,
+    verify_email_confirmation_token,
 )
 from schemas.token import Token, RefreshTokenRequest
+from utils.redis_connect import get_redis
+from utils.send_email import send_confirmation_email
+from utils.rmq_producer import publish_email_to_broker
 
 env = Env()
 env.read_env()
@@ -25,22 +31,24 @@ ALGORITHM = "HS256"
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-# Роутер регистрации пользователя
+# Роутер для регистрации пользователя
 @router.post("/register/")
 async def register(
-    user_data: UserDataWeb | UserDataTg, session: AsyncSession = Depends(get_session)
+    user_data: UserDataWeb | UserDataTg,
+    session: AsyncSession = Depends(get_session),
+    redis: Redis = Depends(get_redis),
 ):
+    confirmation_token = create_email_confirmation_token(user_data.email)
     db_user = await UserDO.get_by_email(email=user_data.email, session=session)
+
     if db_user:
         update_fields = {}
-        # Добавляем пароль пользователю если он ещё не зарегестрирован по веб но зарегистрирован по Тг
         if (
             isinstance(user_data, UserDataWeb)
             and db_user.tg_id
             and not db_user.hashed_password
         ):
             update_fields["hashed_password"] = get_hash_password(user_data.password)
-        # Добавляем tg_id пользователю если он ещё не зарегестрирован по Тг через бота но зарегистрирован по веб
         elif (
             isinstance(user_data, UserDataTg)
             and db_user.hashed_password
@@ -49,34 +57,95 @@ async def register(
             update_fields["tg_id"] = user_data.tg_id
 
         if update_fields:
-            await UserDO.update(session=session, id=db_user.id, **update_fields)
+            update_fields["email"] = user_data.email
+            await redis.hset(f"confirm:{confirmation_token}", mapping=update_fields)
+            await redis.expire(f"confirm:{confirmation_token}", 1800)
         else:
             raise HTTPException(status_code=400, detail="User already registered")
     else:
-        # Добавляем пользователя в зависимости от типа регистрации (веб или Тг)
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
-            db_user = await UserDO.add(
-                session=session, email=user_data.email, hashed_password=hashed_password
+            await redis.hset(
+                f"confirm:{confirmation_token}",
+                mapping={"email": user_data.email, "hashed_password": hashed_password},
             )
         elif isinstance(user_data, UserDataTg):
-            db_user = await UserDO.add(session=session, **user_data.__dict__)
-    # Пользователю веб возвращаем access и refresh токены
-    if isinstance(user_data, UserDataWeb):
+            await redis.hset(
+                f"confirm:{confirmation_token}", mapping=user_data.__dict__
+            )
+        await redis.expire(f"confirm:{confirmation_token}", 1800)
+
+    await send_confirmation_email(user_data.email, confirmation_token)
+    return JSONResponse(
+        content={"message": "Check your email to confirm registration."},
+        status_code=200,
+    )
+
+
+# Роутер подтверждения почты по токену
+@router.get("/confirm-email/{token}/")
+async def confirmation_email(
+    token: str,
+    session: AsyncSession = Depends(get_session),
+    redis: Redis = Depends(get_redis),
+):
+    email = verify_email_confirmation_token(token)
+    user_data = await redis.hgetall(f"confirm:{token}")
+
+    if not email or not user_data:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    db_user = await UserDO.get_by_email(email=user_data["email"], session=session)
+
+    if db_user and db_user.hashed_password and db_user.tg_id:
+        raise HTTPException(status_code=400, detail="Email already confirmed")
+
+    if not db_user:
+        await UserDO.add(session=session, **user_data)
+    else:
+        if "hashed_password" in user_data:
+            await UserDO.update(
+                session=session,
+                id=db_user.id,
+                **{"hashed_password": user_data["hashed_password"]},
+            )
+        if "tg_id" in user_data:
+            await UserDO.update(
+                session=session, id=db_user.id, **{"tg_id": user_data["tg_id"]}
+            )
+
+    # Очищаем данные из Redis после подтверждения
+    await redis.delete(f"confirm:{token}")
+
+    # Логика для веб-пользователей
+    if "hashed_password" in user_data:
         access_token = create_access_token(
-            data={"email": user_data.email}, secret_key=SECRET_KEY
+            data={"email": user_data["email"]}, secret_key=SECRET_KEY
         )
         refresh_token = create_refresh_token(
-            data={"email": user_data.email}, secret_key=SECRET_KEY
+            data={"email": user_data["email"]}, secret_key=SECRET_KEY
         )
-        return Token(
-            access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+        return JSONResponse(
+            content={
+                "message": "Email successfully confirmed!",
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+            },
+            status_code=200,
         )
-    # Пользователю Тг возвращаем ответ об успешной регистрации
-    return JSONResponse(
-        content={"message": "User is registered"},
-        status_code=201,
-    )
+    if "tg_id" in user_data:
+        await publish_email_to_broker(
+            {
+                "event": "user_confirmed",
+                "email": user_data["email"],
+                "tg_id": user_data["tg_id"],
+            }
+        )
+        return JSONResponse(
+            content={"message": "Email successfully confirmed!"},
+            status_code=200,
+        )
 
 
 # Роутер входа пользователя
