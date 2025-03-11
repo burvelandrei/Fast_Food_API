@@ -19,7 +19,7 @@ from services.auth import (
 from schemas.token import Token, RefreshTokenRequest
 from utils.redis_connect import get_redis
 from utils.send_email import send_confirmation_email
-from utils.rmq_producer import publish_email_to_broker
+from utils.rmq_producer import publish_confirmations
 
 env = Env()
 env.read_env()
@@ -135,7 +135,7 @@ async def confirmation_email(
             status_code=200,
         )
     if "tg_id" in user_data:
-        await publish_email_to_broker(
+        await publish_confirmations(
             {
                 "event": "user_confirmed",
                 "email": user_data["email"],

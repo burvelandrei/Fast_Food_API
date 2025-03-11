@@ -8,7 +8,7 @@ env.read_env()
 
 
 # Функция для публикации в rabbitmq информации об успешном подтверждении почты
-async def publish_email_to_broker(event_data: dict):
+async def publish_confirmations(event_data: dict):
     connection = await aio_pika.connect_robust(
         f"amqp://{env('RMQ_USER')}:{env('RMQ_PASSWORD')}@localhost/"
     )
