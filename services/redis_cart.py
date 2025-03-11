@@ -29,7 +29,7 @@ async def add_to_cart(
         logger.warning(f"Product {cart_item.product_id} not found")
         raise HTTPException(status_code=404, detail="Product not found in database")
 
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     existing_item = await redis.hget(cart_key, str(cart_item.product_id))
 
     if existing_item:
@@ -55,7 +55,7 @@ async def update_cart_item(
 ):
     """Обновление количества продукта в корзине"""
     logger.info(f"Updating product {cart_item.product_id} in user_id {user_id} cart")
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     existing_item = await redis.hget(cart_key, str(cart_item.product_id))
     product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
     if not product:
@@ -83,7 +83,7 @@ async def get_cart(
 ):
     """Функция для получения корзины по user_id"""
     logger.info(f"Fetching cart for user {user_id}")
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     cart_items = await redis.hgetall(cart_key)
 
     if not cart_items:
@@ -125,7 +125,7 @@ async def get_cart_item(
 ):
     """Получение одного товара из корзины"""
     logger.info(f"Fetching product {product_id} from user {user_id} cart")
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     item_data = await redis.hget(cart_key, str(product_id))
 
     if not item_data:
@@ -151,7 +151,7 @@ async def get_cart_item(
 async def remove_item(user_id: int, product_id: int, redis: Redis):
     """Удаление продукта из корзины"""
     logger.info(f"Removing product {product_id} from user_id {user_id} cart")
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     removed = await redis.hdel(cart_key, str(product_id))
     if removed:
         return JSONResponse(
@@ -165,7 +165,7 @@ async def remove_item(user_id: int, product_id: int, redis: Redis):
 async def remove_cart(user_id: int, redis: Redis):
     """Очистка корзины"""
     logger.info(f"Clearing cart for user {user_id}")
-    cart_key = f"cart_{user_id}"
+    cart_key = f"cart:{user_id}"
     deleted = await redis.delete(cart_key)
     if deleted:
         return JSONResponse(
