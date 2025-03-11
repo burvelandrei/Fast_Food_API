@@ -4,6 +4,7 @@ from fastapi import HTTPException, Depends, status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from environs import Env
+from itsdangerous import URLSafeTimedSerializer
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.token import TokenData
@@ -101,3 +102,16 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def create_email_confirmation_token(email: str) -> str:
+    serializer = URLSafeTimedSerializer(SECRET_KEY)
+    return serializer.dumps(email, salt="email-confirm")
+
+
+def verify_email_confirmation_token(token: str) -> str | None:
+    serializer = URLSafeTimedSerializer(SECRET_KEY)
+    try:
+        return serializer.loads(token, salt="email-confirm", max_age=1800)
+    except:
+        return None
