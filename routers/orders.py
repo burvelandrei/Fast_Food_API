@@ -69,7 +69,9 @@ async def repeat_order_to_cart(
     redis: Redis = Depends(get_redis),
 ):
     # чистим корзину перед добавлением товаров из заказа
-    await remove_cart(user.id, redis)
+    cart = await get_cart(user.id, redis, session)
+    if cart and cart.cart_items:
+        await remove_cart(user.id, redis)
     existing_order = await OrderDO.get_by_id(
         order_id=order_id, user_id=user.id, session=session
     )
