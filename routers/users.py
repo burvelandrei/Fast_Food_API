@@ -2,7 +2,6 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from environs import Env
 from redis.asyncio import Redis
 from db.connect import get_session
 from schemas.user import UserOut, UserDataTg, UserDataWeb
@@ -20,13 +19,8 @@ from schemas.token import Token, RefreshTokenRequest
 from utils.redis_connect import get_redis
 from utils.send_email import send_confirmation_email
 from utils.rmq_producer import publish_confirmations
+from config import settings
 
-env = Env()
-env.read_env()
-
-
-SECRET_KEY = env("SECRET_KEY")
-ALGORITHM = "HS256"
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -120,10 +114,12 @@ async def confirmation_email(
     # Логика для веб-пользователей
     if "hashed_password" in user_data:
         access_token = create_access_token(
-            data={"email": user_data["email"]}, secret_key=SECRET_KEY
+            data={"email": user_data["email"]},
+            secret_key=settings.SECRET_KEY,
         )
         refresh_token = create_refresh_token(
-            data={"email": user_data["email"]}, secret_key=SECRET_KEY
+            data={"email": user_data["email"]},
+            secret_key=settings.SECRET_KEY,
         )
         return JSONResponse(
             content={
@@ -162,10 +158,10 @@ async def login_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(
-        data={"email": user.email}, secret_key=SECRET_KEY
+        data={"email": user.email}, secret_key=settings.SECRET_KEY
     )
     refresh_token = create_refresh_token(
-        data={"email": user.email}, secret_key=SECRET_KEY
+        data={"email": user.email}, secret_key=settings.SECRET_KEY
     )
     return Token(
         access_token=access_token, refresh_token=refresh_token, token_type="bearer"
@@ -196,7 +192,9 @@ async def refresh_access_token(
 
     try:
         payload = jwt.decode(
-            token_data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM]
+            token_data.refresh_token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
         email = payload.get("email")
         if email is None:
@@ -208,5 +206,8 @@ async def refresh_access_token(
     except jwt.PyJWTError:
         raise invalid_refresh_token_exception
 
-    new_access_token = create_access_token(data={"email": email}, secret_key=SECRET_KEY)
+    new_access_token = create_access_token(
+        data={"email": email},
+        secret_key=settings.SECRET_KEY,
+    )
     return {"access_token": new_access_token, "token_type": "bearer"}

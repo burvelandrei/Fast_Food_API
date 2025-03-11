@@ -6,11 +6,7 @@ from alembic import context
 # Импортируем нашу базу данных и модели
 from db.models import Base
 import db.models
-from environs import Env
-
-
-env = Env()
-env.read_env()
+from config import settings
 
 
 # Подключаем логгер
@@ -20,8 +16,8 @@ if config.config_file_name is not None:
 
 
 DATABASE_URL = (
-    f"postgresql+asyncpg://{env("DB_USER")}:{env("DB_PASSWORD")}@"
-    f"{env("DB_HOST")}:{env("DB_PORT")}/{env("DB_NAME")}"
+    f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@"
+    f"{settings.DB_HOST}:{settings.DB_PASSWORD}/{settings.DB_NAME}"
 )
 
 

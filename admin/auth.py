@@ -1,21 +1,13 @@
 import jwt
 from fastapi import Request
-from environs import Env
 from db.connect import get_session
 from db.operations import UserDO
-from starlette.responses import RedirectResponse
 from sqladmin.authentication import AuthenticationBackend
 from db.connect import AsyncSessionLocal
 from services.auth import verify_password, create_access_token, create_refresh_token
 from admin.middllwares import CookieMiddleware
 from starlette.middleware import Middleware
-
-env = Env()
-env.read_env()
-
-
-SECRET_KEY_ADMIN = env("SECRET_KEY_ADMIN")
-ALGORITHM = "HS256"
+from config import settings
 
 
 class JWTAuthBackend(AuthenticationBackend):
@@ -45,11 +37,11 @@ class JWTAuthBackend(AuthenticationBackend):
 
         access_token = create_access_token(
             data={"email": email},
-            secret_key=SECRET_KEY_ADMIN,
+            secret_key=settings.SECRET_KEY_ADMIN,
         )
         refresh_token = create_refresh_token(
             data={"email": email},
-            secret_key=SECRET_KEY_ADMIN,
+            secret_key=settings.SECRET_KEY_ADMIN,
         )
         # устанавливаем cookie в scope
         request.scope["set_cookie"](
@@ -76,18 +68,24 @@ class JWTAuthBackend(AuthenticationBackend):
         if not access_token:
             return False
         try:
-            jwt.decode(access_token, SECRET_KEY_ADMIN, algorithms=[ALGORITHM])
+            jwt.decode(
+                access_token,
+                settings.SECRET_KEY_ADMIN,
+                algorithms=[settings.ALGORITHM],
+            )
             return True
         except jwt.ExpiredSignatureError:
             # если токен access истёк пробуем обновить через refresh
             if refresh_token:
                 try:
                     payload = jwt.decode(
-                        refresh_token, SECRET_KEY_ADMIN, algorithms=[ALGORITHM]
+                        refresh_token,
+                        settings.SECRET_KEY_ADMIN,
+                        algorithms=[settings.ALGORITHM],
                     )
                     new_access_token = create_access_token(
                         data={"email": payload["email"]},
-                        secret_key=SECRET_KEY_ADMIN,
+                        secret_key=settings.SECRET_KEY_ADMIN,
                     )
                     request.scope["set_cookie"](
                         "access_token",

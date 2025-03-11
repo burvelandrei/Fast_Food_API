@@ -1,16 +1,12 @@
 import aio_pika
 import json
-from environs import Env
-
-
-env = Env()
-env.read_env()
+from config import settings
 
 
 # Функция для публикации в rabbitmq информации об успешном подтверждении почты
 async def publish_confirmations(event_data: dict):
     connection = await aio_pika.connect_robust(
-        f"amqp://{env('RMQ_USER')}:{env('RMQ_PASSWORD')}@localhost/"
+        f"amqp://{settings.RMQ_USER}:{settings.RMQ_PASSWORD}@{settings.SERVER_HOST}/"
     )
     channel = await connection.channel()
     await channel.default_exchange.publish(
