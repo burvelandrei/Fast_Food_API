@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import ForeignKey, DECIMAL, Enum, case
+from sqlalchemy import ForeignKey, DECIMAL, Enum, case, func
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -86,6 +86,9 @@ class Order(Base):
             (status == OrderStatus.completed, 2),
             else_=3,
         )
+    )
+    created_at_moscow = column_property(
+        func.timezone("Europe/Moscow", func.timezone("UTC", created_at))
     )
 
     user: Mapped["User"] = relationship(back_populates="orders")

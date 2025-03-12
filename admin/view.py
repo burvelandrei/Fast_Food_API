@@ -1,9 +1,7 @@
 from sqladmin import Admin, ModelView
-from sqlalchemy import case, desc
 from db.models import User, Category, Product, Order, OrderItem
 from db.connect import engine
 from admin.auth import admin_auth
-from wtforms import IntegerField
 
 
 class UserAdmin(ModelView, model=User):
@@ -24,7 +22,6 @@ class UserAdmin(ModelView, model=User):
         "tg_id",
         "hashed_password",
         "orders",
-        "refresh_tokens",
         "is_admin",
     ]
     can_create = False
@@ -39,7 +36,10 @@ class CategoryAdmin(ModelView, model=Category):
         "id",
         "name",
     ]
-    column_sortable_list = ["id", "name"]
+    column_sortable_list = [
+        "id",
+        "name",
+    ]
     form_excluded_columns = [
         "products",
     ]
@@ -68,11 +68,11 @@ class OrderAdmin(ModelView, model=Order):
         "user_id",
         "total_amount",
         "status",
-        "created_at",
+        "created_at_moscow",
     ]
     column_default_sort = [
         ("status_sort", False),
-        ("created_at", True),
+        ("created_at_moscow", True),
     ]
     column_searchable_list = [
         "id",
@@ -81,6 +81,13 @@ class OrderAdmin(ModelView, model=Order):
     column_sortable_list = [
         "id",
         "user_id",
+        "status",
+        "created_at_moscow",
+    ]
+    form_columns = [
+        "user",
+        "order_items",
+        "total_amount",
         "status",
         "created_at",
     ]
