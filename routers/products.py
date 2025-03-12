@@ -16,11 +16,11 @@ async def get_products(
     category_id: int = Query(None),
     session: AsyncSession = Depends(get_session),
 ):
-    if category_id:
-        products = await ProductDO.get_all_by_category_id(
-            category_id=category_id, session=session
-        )
-    products = await ProductDO.get_all(session=session)
+    if not category_id:
+        products = await ProductDO.get_all(session=session)
+    products = await ProductDO.get_all_by_category_id(
+        category_id=category_id, session=session
+    )
     return products
 
 

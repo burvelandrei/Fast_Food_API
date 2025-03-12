@@ -145,7 +145,7 @@ class ProductDO(BaseDO):
         """Получение products для category_id"""
         try:
             logger.info(f"Fetching all products for category_id {category_id}")
-            query = query.where(cls.model.category_id == category_id)
+            query = select(cls.model).where(cls.model.category_id == category_id)
             result = await session.execute(query)
             return result.scalars().all()
         except Exception as e:

@@ -41,17 +41,17 @@ async def confirmation_order(
 @router.get("/", response_model=list[OrderOut])
 @cache(expire=20)
 async def get_all_orders(
-    status: int = Query(None),
+    status: str = Query(None),
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    if status:
-        orders = await OrderDO.get_all_by_status(
-            user_id=user.id,
-            status=status,
-            session=session,
-        )
-    orders = await OrderDO.get_all(user_id=user.id, session=session)
+    if not status:
+        orders = await OrderDO.get_all(user_id=user.id, session=session)
+    orders = await OrderDO.get_all_by_status(
+        user_id=user.id,
+        status=status,
+        session=session,
+    )
     return orders
 
 
