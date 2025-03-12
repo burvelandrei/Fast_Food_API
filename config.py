@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     MAIL_PORT: int
     MAIL_SERVER: str
 
+    RMQ_HOST: str
+    RMQ_PORT: str
     RMQ_USER: str
     RMQ_PASSWORD: str
 
