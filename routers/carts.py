@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.cart import CartItemModify
+from schemas.cart import CartItemModify, CartItemСreate
 from schemas.user import UserOut
 from db.connect import get_session
 from utils.redis_connect import get_redis
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/carts", tags=["Carts"])
 # Роутер добавления продукта в корзину
 @router.post("/add/")
 async def add_item_to_cart(
-    item: CartItemModify,
+    item: CartItemСreate,
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
@@ -31,14 +31,21 @@ async def add_item_to_cart(
 
 
 # Роутер изменения количества продукта в корзине
-@router.post("/update/")
+@router.patch("/update/{product_id}/")
 async def update_item_to_cart(
+    product_id: int,
     item: CartItemModify,
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await update_cart_item(user.id, item, redis, session)
+    return await update_cart_item(
+        product_id,
+        user.id,
+        item.quantity,
+        redis,
+        session,
+    )
 
 
 # Роутер получения корзины пользователя

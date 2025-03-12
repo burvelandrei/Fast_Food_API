@@ -15,8 +15,15 @@ class CartOut(BaseModel):
     total_amount: Decimal
 
 
-class CartItemModify(BaseModel):
+class CartItemСreate(BaseModel):
     product_id: int
+    quantity: int = Field(
+        ge=1,
+        description="Quantity must be at least 1",
+    )
+
+
+class CartItemModify(BaseModel):
     quantity: int = Field(
         ge=1,
         description="Quantity must be at least 1",

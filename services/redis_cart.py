@@ -2,12 +2,12 @@ import logging
 import logging.config
 import json
 from redis.asyncio import Redis
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from db.operations import ProductDO
-from schemas.cart import CartItemModify, CartItemOut, CartOut
+from schemas.cart import CartItemModify, CartItemOut, CartOut, CartItemСreate
 from schemas.product import ProductOut
 from utils.logger import logging_config
 
@@ -18,7 +18,7 @@ logger = logging.getLogger("redis_operations")
 
 async def add_to_cart(
     user_id: int,
-    cart_item: CartItemModify,
+    cart_item: CartItemСreate,
     redis: Redis,
     session: AsyncSession,
 ):
@@ -48,27 +48,28 @@ async def add_to_cart(
 
 
 async def update_cart_item(
+    product_id: int,
     user_id: int,
-    cart_item: CartItemModify,
+    quantity: CartItemModify,
     redis: Redis,
     session: AsyncSession,
 ):
     """Обновление количества продукта в корзине"""
-    logger.info(f"Updating product {cart_item.product_id} in user_id {user_id} cart")
+    logger.info(f"Updating product {product_id} in user_id {user_id} cart")
     cart_key = f"cart:{user_id}"
-    existing_item = await redis.hget(cart_key, str(cart_item.product_id))
-    product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
+    existing_item = await redis.hget(cart_key, str(product_id))
+    product = await ProductDO.get_by_id(session=session, id=product_id)
     if not product:
-        logger.warning(f"Product {cart_item.product_id} not found")
+        logger.warning(f"Product {product_id} not found")
         raise HTTPException(status_code=404, detail="Product not found in database")
 
     if not existing_item:
-        logger.warning(f"Product {cart_item.product_id} not found in cart")
+        logger.warning(f"Product {product_id} not found in cart")
         raise HTTPException(status_code=404, detail="Product not found in cart")
 
     existing_item = json.loads(existing_item)
-    existing_item["quantity"] = cart_item.quantity
-    await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
+    existing_item["quantity"] = quantity
+    await redis.hset(cart_key, str(product_id), json.dumps(existing_item))
 
     return JSONResponse(
         content={"message": "Product quantity updated"},
