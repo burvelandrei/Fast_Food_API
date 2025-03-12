@@ -141,7 +141,7 @@ class ProductDO(BaseDO):
     model = Product
 
     @classmethod
-    async def get_by_category_id(cls, category_id: int, session: AsyncSession):
+    async def get_all_by_category_id(cls, category_id: int, session: AsyncSession):
         """Получение products для category_id"""
         try:
             logger.info(f"Fetching all products for category_id {category_id}")
