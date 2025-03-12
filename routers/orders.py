@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
@@ -37,13 +37,20 @@ async def confirmation_order(
     )
 
 
-# Роутер получения всех заказов пользователя
+# Роутер получения всех заказов пользователя (если указан status только заказы по статусу)
 @router.get("/", response_model=list[OrderOut])
 @cache(expire=20)
 async def get_all_orders(
+    status: int = Query(None),
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
+    if status:
+        orders = await OrderDO.get_all_by_status(
+            user_id=user.id,
+            status=status,
+            session=session,
+        )
     orders = await OrderDO.get_all(user_id=user.id, session=session)
     return orders
 
@@ -56,7 +63,11 @@ async def get_order(
     user: UserOut = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    order = await OrderDO.get_by_id(order_id=order_id, user_id=user.id, session=session)
+    order = await OrderDO.get_by_id(
+        order_id=order_id,
+        user_id=user.id,
+        session=session,
+    )
     return order
 
 
@@ -72,13 +83,13 @@ async def repeat_order_to_cart(
     cart = await get_cart(user.id, redis, session)
     if cart and cart.cart_items:
         await remove_cart(user.id, redis)
-    existing_order = await OrderDO.get_by_id(
+    db_order = await OrderDO.get_by_id(
         order_id=order_id, user_id=user.id, session=session
     )
-    if not existing_order:
+    if not db_order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    for order_item in existing_order.order_items:
+    for order_item in db_order.order_items:
         cart_item = CartItemModify(
             product_id=order_item.product_id, quantity=order_item.quantity
         )

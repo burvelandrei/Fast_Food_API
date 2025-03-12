@@ -1,8 +1,9 @@
 from typing import List
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import ForeignKey, DECIMAL
+from sqlalchemy import ForeignKey, DECIMAL, Enum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from schemas.order import OrderStatus
 
 
 class Base(DeclarativeBase):
@@ -65,6 +66,10 @@ class Order(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
+    status: Mapped[str] = mapped_column(
+        Enum(OrderStatus, name="orderstatus", create_type=True),
+        default=OrderStatus.processing,
+    )
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     user: Mapped["User"] = relationship(back_populates="orders")

@@ -141,13 +141,11 @@ class ProductDO(BaseDO):
     model = Product
 
     @classmethod
-    async def get_all(cls, category_id: int, session: AsyncSession):
+    async def get_by_category_id(cls, category_id: int, session: AsyncSession):
         """Получение products для category_id"""
         try:
             logger.info(f"Fetching all products for category_id {category_id}")
-            query = select(cls.model)
-            if category_id:
-                query = query.where(cls.model.category_id == category_id)
+            query = query.where(cls.model.category_id == category_id)
             result = await session.execute(query)
             return result.scalars().all()
         except Exception as e:
@@ -209,8 +207,28 @@ class OrderDO(BaseDO):
             raise e
 
     @classmethod
+    async def get_all_by_status(cls, user_id: int, status: str, session: AsyncSession):
+        """Получение всех orders для user_id по указанному статусу"""
+        try:
+            logger.info(f"Fetching all Order for user ID {user_id}")
+            query = (
+                select(cls.model)
+                .where(cls.model.user_id == user_id)
+                .where(cls.model.status == status)
+                .options(selectinload(cls.model.order_items))
+                .order_by(desc(cls.model.created_at))
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching orders for user ID {user_id}: {e}",
+            )
+            raise e
+
+    @classmethod
     async def get_by_id(cls, order_id: int, user_id: int, session: AsyncSession):
-        """Получение заказа по ID для указанного пользователя"""
+        """Получение orders по order_id для указанного пользователя"""
         logger.info(f"Fetching order (ID: {order_id}) for user (ID: {user_id})")
         try:
             query = (

@@ -2,8 +2,11 @@ from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
 from typing import List
-from schemas.product import ProductOut
+from enum import Enum
 
+class OrderStatus(str, Enum):
+    processing = "processing"
+    completed = "completed"
 
 class OrderItemOut(BaseModel):
     product_id: int
@@ -16,4 +19,5 @@ class OrderOut(BaseModel):
     id: int
     order_items: List[OrderItemOut]
     total_amount: Decimal
+    status: OrderStatus
     created_at: datetime
