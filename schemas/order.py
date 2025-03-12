@@ -21,3 +21,4 @@ class OrderOut(BaseModel):
     total_amount: Decimal
     status: OrderStatus
     created_at: datetime
+    created_at_moscow: datetime
