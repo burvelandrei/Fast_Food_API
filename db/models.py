@@ -70,7 +70,7 @@ class Order(Base):
         Enum(OrderStatus, name="orderstatus", create_type=True),
         default=OrderStatus.processing,
     )
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow().replace(microsecond=0))
 
     user: Mapped["User"] = relationship(back_populates="orders")
     order_items: Mapped[List["OrderItem"]] = relationship(
