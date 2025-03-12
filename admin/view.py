@@ -1,4 +1,5 @@
 from sqladmin import Admin, ModelView
+from sqlalchemy import case, desc
 from db.models import User, Category, Product, Order, OrderItem
 from db.connect import engine
 from admin.auth import admin_auth
@@ -66,6 +67,12 @@ class OrderAdmin(ModelView, model=Order):
         "id",
         "user_id",
         "total_amount",
+        "status",
+        "created_at",
+    ]
+    column_default_sort = [
+        ("status_sort", False),
+        ("created_at", True),
     ]
     column_searchable_list = [
         "id",
@@ -74,6 +81,8 @@ class OrderAdmin(ModelView, model=Order):
     column_sortable_list = [
         "id",
         "user_id",
+        "status",
+        "created_at",
     ]
     form_widget_args = {
         "created_at": {"readonly": True},

@@ -1,8 +1,14 @@
 from typing import List
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import ForeignKey, DECIMAL, Enum
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, DECIMAL, Enum, case
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    column_property,
+)
 from schemas.order import OrderStatus
 
 
@@ -70,7 +76,17 @@ class Order(Base):
         Enum(OrderStatus, name="orderstatus", create_type=True),
         default=OrderStatus.processing,
     )
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow().replace(microsecond=0))
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow().replace(microsecond=0)
+    )
+
+    status_sort = column_property(
+        case(
+            (status == OrderStatus.processing, 1),
+            (status == OrderStatus.completed, 2),
+            else_=3,
+        )
+    )
 
     user: Mapped["User"] = relationship(back_populates="orders")
     order_items: Mapped[List["OrderItem"]] = relationship(
