@@ -20,6 +20,7 @@ from utils.redis_connect import get_redis
 from utils.send_email import send_confirmation_email
 from utils.rmq_producer import publish_confirmations
 from config import settings
+from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -178,6 +179,13 @@ async def logout_user(
         content={"message": "Successfully logged out"},
         status_code=200,
     )
+
+
+# Роутер профиля пользователя
+@router.get("/profile/")
+@cache(expire=20)
+async def get_profile(user: UserOut = Depends(get_current_user)):
+    return user
 
 
 # Роутер обновления access токена
