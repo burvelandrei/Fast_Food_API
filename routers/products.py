@@ -9,14 +9,18 @@ from fastapi_cache.decorator import cache
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-# Роутер получения всех продуктов (если category=None то выводит все продукты)
+# Роутер получения всех продуктов по категории (если category_id=None то выводит все продукты)
 @router.get("/", response_model=list[ProductOut])
 @cache(expire=60)
 async def get_products(
     category_id: int = Query(None),
     session: AsyncSession = Depends(get_session),
 ):
-    products = await ProductDO.get_all(category_id=category_id, session=session)
+    if category_id:
+        products = ProductDO.get_by_category_id(
+            category_id=category_id, session=session
+        )
+    products = await ProductDO.get_all(session=session)
     return products
 
 
