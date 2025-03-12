@@ -1,5 +1,5 @@
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
@@ -30,6 +30,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.post("/register/")
 async def register(
     user_data: UserDataWeb | UserDataTg,
+    background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
     redis: Redis = Depends(get_redis),
 ):
@@ -69,8 +70,8 @@ async def register(
                 f"confirm:{confirmation_token}", mapping=user_data.__dict__
             )
         await redis.expire(f"confirm:{confirmation_token}", 1800)
-
-    await send_confirmation_email(user_data.email, confirmation_token)
+    background_tasks.add_task(send_confirmation_email, user_data.email, confirmation_token)
+    # await send_confirmation_email(user_data.email, confirmation_token)
     return JSONResponse(
         content={"message": "Check your email to confirm registration."},
         status_code=200,
@@ -182,8 +183,7 @@ async def logout_user(
 
 
 # Роутер профиля пользователя
-@router.get("/profile/")
-@cache(expire=20)
+@router.get("/profile/", response_model=UserOut)
 async def get_profile(user: UserOut = Depends(get_current_user)):
     return user
 
