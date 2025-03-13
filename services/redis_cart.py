@@ -22,7 +22,7 @@ async def add_to_cart(
     redis: Redis,
     session: AsyncSession,
 ):
-    """Добавление продукта в корзину количества"""
+    """Добавление продукта в корзину"""
     logger.info(f"Adding product {product_id} to user_id {user_id} cart")
     product = await ProductDO.get_by_id(session=session, id=product_id)
     if not product:
@@ -41,10 +41,6 @@ async def add_to_cart(
     await redis.hset(cart_key, str(product_id), json.dumps(existing_item))
     if not cart_items:
         await redis.expire(cart_key, 24 * 60 * 60)
-    return JSONResponse(
-        content={"message": "Product added to cart"},
-        status_code=201,
-    )
 
 
 async def update_cart_item(
@@ -70,11 +66,6 @@ async def update_cart_item(
     existing_item = json.loads(existing_item)
     existing_item["quantity"] = quantity
     await redis.hset(cart_key, str(product_id), json.dumps(existing_item))
-
-    return JSONResponse(
-        content={"message": "Product quantity updated"},
-        status_code=200,
-    )
 
 
 async def get_cart(
@@ -154,13 +145,9 @@ async def remove_item(user_id: int, product_id: int, redis: Redis):
     logger.info(f"Removing product {product_id} from user_id {user_id} cart")
     cart_key = f"cart:{user_id}"
     removed = await redis.hdel(cart_key, str(product_id))
-    if removed:
-        return JSONResponse(
-            content={"message": "Product removed from cart"},
-            status_code=200,
-        )
-    logger.warning(f"Product {product_id} not found in cart {cart_key}")
-    raise HTTPException(status_code=404, detail="Product not found in cart")
+    if not removed:
+        logger.warning(f"Product {product_id} not found in cart {cart_key}")
+        raise HTTPException(status_code=404, detail="Product not found in cart")
 
 
 async def remove_cart(user_id: int, redis: Redis):
@@ -168,13 +155,10 @@ async def remove_cart(user_id: int, redis: Redis):
     logger.info(f"Clearing cart for user {user_id}")
     cart_key = f"cart:{user_id}"
     deleted = await redis.delete(cart_key)
-    if deleted:
-        return JSONResponse(
-            content={"message": "Cart successfully removed"},
-            status_code=200,
-        )
-    logger.warning(f"Cart {cart_key} not found")
-    raise HTTPException(status_code=404, detail="Cart not found")
+    if not deleted:
+        logger.warning(f"Cart {cart_key} not found")
+        raise HTTPException(status_code=404, detail="Cart not found")
+
 
 
 async def repeat_item_to_cart(

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.cart import CartItemModify, CartItemСreate
+from schemas.cart import CartItemModify
 from schemas.user import UserOut
 from db.connect import get_session
 from utils.redis_connect import get_redis
@@ -27,7 +28,11 @@ async def add_item_to_cart(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await add_to_cart(user.id, product_id, redis, session)
+    await add_to_cart(user.id, product_id, redis, session)
+    return JSONResponse(
+        content={"message": "Product added to cart"},
+        status_code=201,
+    )
 
 
 # Роутер изменения количества продукта в корзине
@@ -39,12 +44,16 @@ async def update_item_to_cart(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await update_cart_item(
+    await update_cart_item(
         product_id,
         user.id,
         item_parametrs.quantity,
         redis,
         session,
+    )
+    return JSONResponse(
+        content={"message": "Product quantity updated"},
+        status_code=200,
     )
 
 
@@ -78,7 +87,11 @@ async def delete_item_from_cart(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
 ):
-    return await remove_item(user.id, product_id, redis)
+    await remove_item(user.id, product_id, redis)
+    return JSONResponse(
+        content={"message": "Product removed from cart"},
+        status_code=200,
+    )
 
 
 # Роутер очистки корзины
@@ -87,4 +100,8 @@ async def delete_cart(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
 ):
-    return await remove_cart(user.id, redis)
+    await remove_cart(user.id, redis)
+    return JSONResponse(
+        content={"message": "Cart successfully removed"},
+        status_code=200,
+    )
