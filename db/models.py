@@ -71,6 +71,7 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user_order_id: Mapped[int] = mapped_column(nullable=False)
     total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     status: Mapped[str] = mapped_column(
         Enum(OrderStatus, name="orderstatus", create_type=True),

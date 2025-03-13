@@ -86,6 +86,7 @@ class OrderAdmin(ModelView, model=Order):
     ]
     form_columns = [
         "user",
+        "user_order_id",
         "order_items",
         "total_amount",
         "status",

@@ -17,6 +17,7 @@ class OrderItemOut(BaseModel):
 
 class OrderOut(BaseModel):
     id: int
+    user_order_id: int
     order_items: List[OrderItemOut]
     total_amount: Decimal
     status: OrderStatus

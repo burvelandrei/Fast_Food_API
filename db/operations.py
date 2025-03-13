@@ -1,6 +1,6 @@
 import logging
 import logging.config
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User, Product, Order, OrderItem, Category, Delivery
@@ -284,7 +284,16 @@ class OrderDO(BaseDO):
     ):
         """Добавление order для user_id"""
         logger.info(f"Creating new order for user_id {user_id}")
-        new_instance = cls.model(user_id=user_id, total_amount=values.total_amount)
+        max_user_order_id_query = select(func.max(cls.model.user_order_id)).where(
+            cls.model.user_id == user_id
+        )
+        result = await session.execute(max_user_order_id_query)
+        max_user_order_id = result.scalar() or 0
+        new_instance = cls.model(
+            user_id=user_id,
+            total_amount=values.total_amount,
+            user_order_id=max_user_order_id + 1,
+        )
         session.add(new_instance)
         try:
             await session.flush()
