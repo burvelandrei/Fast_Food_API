@@ -7,8 +7,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from db.operations import ProductDO
-from schemas.cart import CartItemModify, CartItemOut, CartOut, CartItemCreate
-from schemas.product import ProductCartOut
+from schemas.cart import (
+    CartItemModify,
+    CartItemOut,
+    CartOut,
+    CartItemCreate,
+    ProductCartOut,
+)
 from utils.logger import logging_config
 
 
