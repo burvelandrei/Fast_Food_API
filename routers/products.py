@@ -18,9 +18,10 @@ async def get_products(
 ):
     if not category_id:
         products = await ProductDO.get_all(session=session)
-    products = await ProductDO.get_all_by_category_id(
-        category_id=category_id, session=session
-    )
+    else:
+        products = await ProductDO.get_all_by_category_id(
+            category_id=category_id, session=session
+        )
     return products
 
 
@@ -31,7 +32,7 @@ async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),
 ):
-    product = await ProductDO.get_by_id(id=product_id, session=session)
+    product = await ProductDO.get_by_id(product_id=product_id, session=session)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product

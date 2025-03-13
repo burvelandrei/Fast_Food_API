@@ -3,7 +3,16 @@ import logging.config
 from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import User, Product, Order, OrderItem, Category, Delivery
+from db.models import (
+    User,
+    Product,
+    Order,
+    OrderItem,
+    Category,
+    Delivery,
+    Size,
+    ProductSize,
+)
 from utils.logger import logging_config
 
 
@@ -141,16 +150,81 @@ class ProductDO(BaseDO):
     model = Product
 
     @classmethod
+    async def get_all(cls, session: AsyncSession):
+        """Получение products"""
+        try:
+            logger.info(f"Fetching all products")
+            query = select(cls.model).options(
+                selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching products: {e}",
+            )
+            raise e
+
+    @classmethod
     async def get_all_by_category_id(cls, category_id: int, session: AsyncSession):
         """Получение products для category_id"""
         try:
             logger.info(f"Fetching all products for category_id {category_id}")
-            query = select(cls.model).where(cls.model.category_id == category_id)
+            query = (
+                select(cls.model)
+                .where(cls.model.category_id == category_id)
+                .options(
+                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                )
+            )
             result = await session.execute(query)
             return result.scalars().all()
         except Exception as e:
             logger.error(
                 f"An error occurred while fetching products for category_id {category_id}: {e}",
+            )
+            raise e
+
+    @classmethod
+    async def get_by_id(cls, product_id: int, session: AsyncSession):
+        """Получаем продукт по product_id и size_id"""
+        try:
+            logger.info(f"Fetching product with id {product_id}")
+            query = (
+                select(cls.model)
+                .where(cls.model.id == product_id)
+                .options(
+                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                )
+            )
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching product with id {product_id}: {e}",
+            )
+            raise e
+
+    @classmethod
+    async def get_for_id_by_size_id(
+        cls, product_id: int, size_id: int, session: AsyncSession
+    ):
+        """Получаем продукт по product_id и size_id"""
+        try:
+            logger.info(f"Fetching product with id {product_id} and size_id {size_id}")
+            query = (
+                select(cls.model)
+                .join(ProductSize)
+                .where(cls.model.id == product_id, ProductSize.size_id == size_id)
+                .options(
+                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                )
+            )
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching product with id {product_id} and size_id {size_id}: {e}",
             )
             raise e
 

@@ -53,17 +53,50 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
-    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
-    discount: Mapped[int] = mapped_column(nullable=False, default=0)
     photo_name: Mapped[str] = mapped_column(nullable=False)
     category_id: Mapped[int] = mapped_column(
         ForeignKey("category.id", ondelete="CASCADE")
     )
 
     category: Mapped["Category"] = relationship(back_populates="products")
+    product_sizes: Mapped[List["ProductSize"]] = relationship(
+        "ProductSize", back_populates="product", cascade="all, delete"
+    )
 
     def __repr__(self):
         return f"{self.id} - {self.name}"
+
+
+class Size(Base):
+    __tablename__ = "size"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+
+    size_products: Mapped[List["ProductSize"]] = relationship(
+        "ProductSize", back_populates="size", cascade="all, delete"
+    )
+
+    def __repr__(self):
+        return f"{self.name}"
+
+
+class ProductSize(Base):
+    __tablename__ = "product_size"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("product.id", ondelete="CASCADE")
+    )
+    size_id: Mapped[int] = mapped_column(ForeignKey("size.id", ondelete="CASCADE"))
+    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
+    discount: Mapped[int] = mapped_column(nullable=False, default=0)
+
+    product: Mapped["Product"] = relationship("Product", back_populates="product_sizes")
+    size: Mapped["Size"] = relationship("Size", back_populates="size_products")
+
+    def __repr__(self):
+        return f"{self.size.name} - {self.price} - {self.discount}"
 
 
 class Order(Base):

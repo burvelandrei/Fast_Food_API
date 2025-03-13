@@ -1,5 +1,14 @@
 from sqladmin import Admin, ModelView
-from db.models import User, Category, Product, Order, OrderItem, Delivery
+from db.models import (
+    User,
+    Category,
+    Product,
+    Order,
+    OrderItem,
+    Delivery,
+    Size,
+    ProductSize,
+)
 from db.connect import engine
 from admin.auth import admin_auth
 
@@ -49,7 +58,6 @@ class ProductAdmin(ModelView, model=Product):
     column_list = [
         "id",
         "name",
-        "price",
         "category_id",
     ]
     column_searchable_list = [
@@ -60,7 +68,34 @@ class ProductAdmin(ModelView, model=Product):
         "id",
         "name",
     ]
+    column_details_exclude_list = ["product_sizes"]
+    form_excluded_columns = ["product_sizes"]
 
+class SizeAdmin(ModelView, model=Size):
+    column_list = ["id", "name"]
+    column_searchable_list = ["id", "name"]
+    column_sortable_list = ["id"]
+    column_details_exclude_list = ["size_products"]
+    form_excluded_columns = ["size_products"]
+
+
+class ProductSizeAdmin(ModelView, model=ProductSize):
+    column_list = [
+        "product_id",
+        "product",
+        "size",
+        "size_id",
+        "price",
+        "discount",
+    ]
+    column_searchable_list = [
+        "product_id",
+        "size_id"
+    ]
+    column_sortable_list = [
+        "product_id",
+        "size_id"
+    ]
 
 class OrderAdmin(ModelView, model=Order):
     column_list = [
@@ -118,12 +153,7 @@ class OrderItemAdmin(ModelView, model=OrderItem):
 
 
 class DeliveryAdmin(ModelView, model=Delivery):
-    column_list = [
-        "id",
-        "order_id",
-        "delivery_type",
-        "delivery_address"
-    ]
+    column_list = ["id", "order_id", "delivery_type", "delivery_address"]
     column_searchable_list = [
         "order_id",
         "delivery_address",
@@ -145,6 +175,8 @@ def setup_admin(app):
     admin.add_view(UserAdmin)
     admin.add_view(CategoryAdmin)
     admin.add_view(ProductAdmin)
+    admin.add_view(ProductSizeAdmin)
+    admin.add_view(SizeAdmin)
     admin.add_view(OrderAdmin)
     admin.add_view(OrderItemAdmin)
     admin.add_view(DeliveryAdmin)
