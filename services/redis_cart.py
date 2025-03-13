@@ -160,7 +160,6 @@ async def remove_cart(user_id: int, redis: Redis):
         raise HTTPException(status_code=404, detail="Cart not found")
 
 
-
 async def repeat_item_to_cart(
     user_id: int,
     cart_item: CartItemСreate,
