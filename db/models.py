@@ -9,7 +9,7 @@ from sqlalchemy.orm import (
     relationship,
     column_property,
 )
-from schemas.order import OrderStatus
+from schemas.order import OrderStatus, DeliveryType
 
 
 class Base(DeclarativeBase):
@@ -95,6 +95,11 @@ class Order(Base):
     order_items: Mapped[List["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete"
     )
+    delivery: Mapped["Delivery"] = relationship(
+        uselist=False,
+        back_populates="order",
+        cascade="all, delete",
+    )
 
     def __repr__(self):
         return str(self.id)
@@ -115,3 +120,20 @@ class OrderItem(Base):
 
     def __repr__(self):
         return str(self.name)
+
+
+class Delivery(Base):
+    __tablename__ = "delivery"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("order.id", ondelete="CASCADE"))
+    delivery_type: Mapped[str] = mapped_column(
+        Enum(DeliveryType, name="deliverytype", create_type=True),
+        default=DeliveryType.pickup,
+    )
+    delivery_address: Mapped[str] = mapped_column(nullable=True)
+
+    order: Mapped["Order"] = relationship(back_populates="delivery")
+
+    def __repr__(self):
+        return str(self.id)

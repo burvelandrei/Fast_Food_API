@@ -3,7 +3,7 @@ import logging.config
 from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import User, Product, Order, OrderItem, Category
+from db.models import User, Product, Order, OrderItem, Category, Delivery
 from utils.logger import logging_config
 
 
@@ -161,7 +161,7 @@ class OrderItemDO(BaseDO):
     model = OrderItem
 
     @classmethod
-    async def add_many(cls, order: int, session: AsyncSession, values: dict):
+    async def add_many_by_order(cls, order: Order, session: AsyncSession, values: dict):
         """Добавление order_items для order"""
         logger.info(f"Adding multiple order items for order {order.id}")
         for item in values.cart_items:
@@ -174,11 +174,35 @@ class OrderItemDO(BaseDO):
             )
             session.add(new_instance)
         try:
-            await session.commit()
+            await session.flush()
             logger.info(f"Added order items for order {order.id}")
         except Exception as e:
-            await session.rollback()
             logger.error(f"Error adding order items: {e}")
+            raise e
+
+
+class DeliveryDO(BaseDO):
+    """Класс c операциями для модели Delivery"""
+
+    model = Delivery
+
+    @classmethod
+    async def add_by_order(
+        cls, order: Order, session: AsyncSession, delivery_data: Delivery
+    ):
+        """Добавление delivery info для order"""
+        logger.info(f"Adding delivery info for order {order.id}")
+        new_instance = cls.model(
+            order_id=order.id,
+            delivery_type=delivery_data.delivery_type,
+            delivery_address=delivery_data.delivery_address,
+        )
+        session.add(new_instance)
+        try:
+            await session.flush()
+            logger.info(f"Added delivery info for order {order.id}")
+        except Exception as e:
+            logger.error(f"Error adding delivery info: {e}")
             raise e
 
 
@@ -195,7 +219,10 @@ class OrderDO(BaseDO):
             query = (
                 select(cls.model)
                 .where(cls.model.user_id == user_id)
-                .options(selectinload(cls.model.order_items))
+                .options(
+                    selectinload(cls.model.order_items),
+                    selectinload(cls.model.delivery),
+                )
                 .order_by(desc(cls.model.created_at))
             )
             result = await session.execute(query)
@@ -215,7 +242,10 @@ class OrderDO(BaseDO):
                 select(cls.model)
                 .where(cls.model.user_id == user_id)
                 .where(cls.model.status == status)
-                .options(selectinload(cls.model.order_items))
+                .options(
+                    selectinload(cls.model.order_items),
+                    selectinload(cls.model.delivery),
+                )
                 .order_by(desc(cls.model.created_at))
             )
             result = await session.execute(query)
@@ -234,7 +264,10 @@ class OrderDO(BaseDO):
             query = (
                 select(cls.model)
                 .where(cls.model.id == order_id, cls.model.user_id == user_id)
-                .options(selectinload(cls.model.order_items))
+                .options(
+                    selectinload(cls.model.order_items),
+                    selectinload(cls.model.delivery),
+                )
             )
             result = await session.execute(query)
             order = result.scalar_one_or_none()
@@ -246,15 +279,22 @@ class OrderDO(BaseDO):
             raise e
 
     @classmethod
-    async def add(cls, user_id: int, session: AsyncSession, values: dict):
+    async def add(
+        cls, user_id: int, session: AsyncSession, values: dict, delivery_data: Delivery
+    ):
         """Добавление order для user_id"""
         logger.info(f"Creating new order for user_id {user_id}")
         new_instance = cls.model(user_id=user_id, total_amount=values.total_amount)
         session.add(new_instance)
         try:
             await session.flush()
-            await OrderItemDO.add_many(
+            await OrderItemDO.add_many_by_order(
                 order=new_instance, session=session, values=values
+            )
+            await DeliveryDO.add_by_order(
+                order=new_instance,
+                session=session,
+                delivery_data=delivery_data,
             )
             await session.commit()
             logger.info(f"Added new Order")

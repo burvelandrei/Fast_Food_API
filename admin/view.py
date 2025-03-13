@@ -1,5 +1,5 @@
 from sqladmin import Admin, ModelView
-from db.models import User, Category, Product, Order, OrderItem
+from db.models import User, Category, Product, Order, OrderItem, Delivery
 from db.connect import engine
 from admin.auth import admin_auth
 
@@ -116,6 +116,23 @@ class OrderItemAdmin(ModelView, model=OrderItem):
     ]
 
 
+class DeliveryAdmin(ModelView, model=Delivery):
+    column_list = [
+        "id",
+        "order_id",
+        "delivery_type",
+        "delivery_address"
+    ]
+    column_searchable_list = [
+        "order_id",
+        "delivery_address",
+    ]
+    column_sortable_list = [
+        "order_id",
+        "delivery_type",
+    ]
+
+
 # Функция для инициализации админки и подключения моделей админки
 def setup_admin(app):
     admin = Admin(
@@ -129,3 +146,4 @@ def setup_admin(app):
     admin.add_view(ProductAdmin)
     admin.add_view(OrderAdmin)
     admin.add_view(OrderItemAdmin)
+    admin.add_view(DeliveryAdmin)

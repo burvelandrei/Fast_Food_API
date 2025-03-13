@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from db.connect import get_session
-from schemas.order import OrderOut
+from schemas.order import OrderOut, DeliveryCreate
 from schemas.user import UserOut
 from schemas.cart import CartItemModify
 from db.operations import OrderDO
@@ -19,13 +19,19 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 # Роутер для подтверждения заказа пользователя
 @router.post("/confirmation/")
 async def confirmation_order(
+    delivery_data: DeliveryCreate,
     user: UserOut = Depends(get_current_user),
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
     cart = await get_cart(user.id, redis, session)
     if cart and cart.cart_items:
-        await OrderDO.add(user_id=user.id, session=session, values=cart)
+        await OrderDO.add(
+            user_id=user.id,
+            session=session,
+            values=cart,
+            delivery_data=delivery_data,
+        )
         await remove_cart(user.id, redis)
         return JSONResponse(
             content={"message": "Order successfully created"},
@@ -47,11 +53,12 @@ async def get_all_orders(
 ):
     if not status:
         orders = await OrderDO.get_all(user_id=user.id, session=session)
-    orders = await OrderDO.get_all_by_status(
-        user_id=user.id,
-        status=status,
-        session=session,
-    )
+    else:
+        orders = await OrderDO.get_all_by_status(
+            user_id=user.id,
+            status=status,
+            session=session,
+        )
     return orders
 
 
