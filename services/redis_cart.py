@@ -47,7 +47,11 @@ async def add_to_cart(
         existing_item = json.loads(existing_item)
         existing_item["quantity"] += 1
     else:
-        existing_item = CartItemCreate(product_id=product_id, quantity=1).__dict__
+        existing_item = CartItemCreate(
+            product_id=product_id,
+            size_id=size_id,
+            quantity=1,
+        ).__dict__
     cart_items = await redis.hlen(cart_key)
     await redis.hset(cart_key, cart_item_id, json.dumps(existing_item))
     if not cart_items:
@@ -168,17 +172,15 @@ async def get_cart_item(
     if not product_size:
         logger.warning(f"Product {product_id} not found in database")
         raise HTTPException(status_code=404, detail="Product not found")
-    product_data = ProductCartOut(
-        product_data=ProductCartOut(
-            id=product_size.product.id,
-            name=product_size.product.name,
-            description=product_size.product.description,
-            photo_name=product_size.product.photo_name,
-            size_id=product_size.size.id,
-            size_name=product_size.size.name,
-            price=product_size.price,
-            discount=product_size.discount,
-        )
+    product_data=ProductCartOut(
+        id=product_size.product.id,
+        name=product_size.product.name,
+        description=product_size.product.description,
+        photo_name=product_size.product.photo_name,
+        size_id=product_size.size.id,
+        size_name=product_size.size.name,
+        price=product_size.price,
+        discount=product_size.discount,
     )
     return CartItemOut(
         product=product_data,

@@ -13,7 +13,6 @@ class SizeOut(BaseModel):
 
 
 class ProductSizeOut(BaseModel):
-    id: int
     size: SizeOut
     price: Decimal
     discount: int

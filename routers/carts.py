@@ -97,7 +97,7 @@ async def get_cart_item_user(
 
 
 # Роутер удаления продутка из корзины
-@router.delete("/{product_id}/{size_id}/")
+@router.delete("/delete/{product_id}/{size_id}/")
 async def delete_item_from_cart(
     product_id: int,
     size_id: int,

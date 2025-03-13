@@ -137,6 +137,7 @@ class OrderItemAdmin(ModelView, model=OrderItem):
         "order_id",
         "product_id",
         "name",
+        "size_name",
         "quantity",
         "total_price",
     ]
