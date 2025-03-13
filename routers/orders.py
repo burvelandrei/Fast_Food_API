@@ -5,10 +5,10 @@ from redis.asyncio import Redis
 from db.connect import get_session
 from schemas.order import OrderOut, DeliveryCreate
 from schemas.user import UserOut
-from schemas.cart import CartItemModify
+from schemas.cart import CartItemСreate
 from db.operations import OrderDO
 from utils.redis_connect import get_redis
-from services.redis_cart import get_cart, remove_cart, add_to_cart
+from services.redis_cart import get_cart, remove_cart, repeat_item_to_cart
 from services.auth import get_current_user
 from fastapi_cache.decorator import cache
 
@@ -97,10 +97,10 @@ async def repeat_order_to_cart(
         raise HTTPException(status_code=404, detail="Order not found")
 
     for order_item in db_order.order_items:
-        cart_item = CartItemModify(
+        cart_item = CartItemСreate(
             product_id=order_item.product_id, quantity=order_item.quantity
         )
-        await add_to_cart(user.id, cart_item, redis, session)
+        await repeat_item_to_cart(user.id, cart_item, redis, session)
 
     return JSONResponse(
         content={"message": "Products from the order have been added to the cart"},

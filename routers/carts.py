@@ -20,21 +20,21 @@ router = APIRouter(prefix="/carts", tags=["Carts"])
 
 
 # Роутер добавления продукта в корзину
-@router.post("/add/")
+@router.post("/add/{product_id}/")
 async def add_item_to_cart(
-    item: CartItemСreate,
+    product_id: int,
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await add_to_cart(user.id, item, redis, session)
+    return await add_to_cart(user.id, product_id, redis, session)
 
 
 # Роутер изменения количества продукта в корзине
 @router.patch("/update/{product_id}/")
 async def update_item_to_cart(
     product_id: int,
-    item: CartItemModify,
+    item_parametrs: CartItemModify,
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
@@ -42,7 +42,7 @@ async def update_item_to_cart(
     return await update_cart_item(
         product_id,
         user.id,
-        item.quantity,
+        item_parametrs.quantity,
         redis,
         session,
     )

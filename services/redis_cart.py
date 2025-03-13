@@ -18,27 +18,27 @@ logger = logging.getLogger("redis_operations")
 
 async def add_to_cart(
     user_id: int,
-    cart_item: CartItemСreate,
+    product_id: int,
     redis: Redis,
     session: AsyncSession,
 ):
-    """Добавление продукта в корзину или увеличение количества"""
-    logger.info(f"Adding product {cart_item.product_id} to user_id {user_id} cart")
-    product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
+    """Добавление продукта в корзину количества"""
+    logger.info(f"Adding product {product_id} to user_id {user_id} cart")
+    product = await ProductDO.get_by_id(session=session, id=product_id)
     if not product:
-        logger.warning(f"Product {cart_item.product_id} not found")
+        logger.warning(f"Product {product_id} not found")
         raise HTTPException(status_code=404, detail="Product not found in database")
 
     cart_key = f"cart:{user_id}"
-    existing_item = await redis.hget(cart_key, str(cart_item.product_id))
+    existing_item = await redis.hget(cart_key, str(product_id))
 
     if existing_item:
         existing_item = json.loads(existing_item)
-        existing_item["quantity"] += cart_item.quantity
+        existing_item["quantity"] += 1
     else:
-        existing_item = cart_item.dict()
+        existing_item = CartItemСreate(product_id=product_id, quantity=1).__dict__
     cart_items = await redis.hlen(cart_key)
-    await redis.hset(cart_key, str(cart_item.product_id), json.dumps(existing_item))
+    await redis.hset(cart_key, str(product_id), json.dumps(existing_item))
     if not cart_items:
         await redis.expire(cart_key, 24 * 60 * 60)
     return JSONResponse(
@@ -175,3 +175,27 @@ async def remove_cart(user_id: int, redis: Redis):
         )
     logger.warning(f"Cart {cart_key} not found")
     raise HTTPException(status_code=404, detail="Cart not found")
+
+
+async def repeat_item_to_cart(
+    user_id: int,
+    cart_item: CartItemСreate,
+    redis: Redis,
+    session: AsyncSession,
+):
+    """Повторяет продукты в корзину из заказа по id"""
+    logger.info(f"Adding product {cart_item.product_id} to user_id {user_id} cart")
+    product = await ProductDO.get_by_id(session=session, id=cart_item.product_id)
+    if not product:
+        logger.warning(
+            f"Skipping product {cart_item.product_id} - not found in database"
+        )
+        return
+
+    cart_key = f"cart:{user_id}"
+    cart_items = await redis.hlen(cart_key)
+    await redis.hset(
+        cart_key, str(cart_item.product_id), json.dumps(cart_item.__dict__)
+    )
+    if not cart_items:
+        await redis.expire(cart_key, 24 * 60 * 60)
