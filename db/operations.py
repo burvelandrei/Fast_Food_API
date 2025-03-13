@@ -216,7 +216,9 @@ class ProductDO(BaseDO):
                 select(ProductSize)
                 .join(Product)
                 .join(Size)
-                .where(ProductSize.product_id == product_id, ProductSize.size_id == size_id)
+                .where(
+                    ProductSize.product_id == product_id, ProductSize.size_id == size_id
+                )
                 .options(
                     selectinload(ProductSize.product),
                     selectinload(ProductSize.size),
@@ -245,6 +247,8 @@ class OrderItemDO(BaseDO):
                 order_id=order.id,
                 product_id=item.product.id,
                 name=item.product.name,
+                size_id=item.product.size_id,
+                size_name=item.product.size_name,
                 quantity=item.quantity,
                 total_price=item.total_price,
             )

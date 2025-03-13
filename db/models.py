@@ -147,6 +147,8 @@ class OrderItem(Base):
     )
     product_id: Mapped[int] = mapped_column(nullable=False, primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
+    size_id: Mapped[int] = mapped_column(nullable=False)
+    size_name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
     total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
 

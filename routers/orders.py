@@ -24,7 +24,11 @@ async def confirmation_order(
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    cart = await get_cart(user.id, redis, session)
+    cart = await get_cart(
+        user_id=user.id,
+        redis=redis,
+        session=session,
+    )
     if cart and cart.cart_items:
         await OrderDO.add(
             user_id=user.id,
@@ -32,7 +36,10 @@ async def confirmation_order(
             values=cart,
             delivery_data=delivery_data,
         )
-        await remove_cart(user.id, redis)
+        await remove_cart(
+            user_id=user.id,
+            redis=redis,
+        )
         return JSONResponse(
             content={"message": "Order successfully created"},
             status_code=201,

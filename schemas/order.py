@@ -11,6 +11,8 @@ class OrderStatus(str, Enum):
 class OrderItemOut(BaseModel):
     product_id: int
     name: str
+    size_id: int
+    size_name: str
     quantity: int
     total_price: Decimal
 
