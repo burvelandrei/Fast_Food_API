@@ -1,11 +1,11 @@
 from typing import List
 from decimal import Decimal
 from pydantic import BaseModel, Field, computed_field
-from schemas.product import ProductOut
+from schemas.product import ProductCartOut
 
 
 class CartItemOut(BaseModel):
-    product: ProductOut
+    product: ProductCartOut
     quantity: int
 
     @computed_field
@@ -21,8 +21,9 @@ class CartOut(BaseModel):
         return sum(item.total_price for item in self.cart_items) or Decimal("0.00")
 
 
-class CartItemСreate(BaseModel):
+class CartItemCreate(BaseModel):
     product_id: int
+    size_id: int
     quantity: int = Field(
         ge=1,
         description="Quantity must be at least 1",

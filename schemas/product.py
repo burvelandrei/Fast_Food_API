@@ -45,3 +45,25 @@ class ProductCreate(BaseModel):
     description: str | None
     price: float = Field(ge=0)
     discount: int = Field(ge=0, le=100)
+
+
+class ProductCartOut(BaseModel):
+    id: int
+    name: str
+    description: str | None
+    photo_name: str
+    size_id: int
+    size_name: str
+    price: Decimal
+    discount: int
+
+    @computed_field
+    def final_price(self) -> Decimal:
+        """Цена с учетом скидки"""
+        return self.price - (self.price * self.discount / 100)
+
+    @computed_field
+    def photo_url(self) -> str | None:
+        """Формирование URL для фото"""
+        photo_path = f"{STATIC_DIR}{self.photo_name}"
+        return f"/{photo_path}" if check_file_exists(key=photo_path) else None

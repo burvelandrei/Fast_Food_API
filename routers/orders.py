@@ -5,7 +5,7 @@ from redis.asyncio import Redis
 from db.connect import get_session
 from schemas.order import OrderOut, DeliveryCreate
 from schemas.user import UserOut
-from schemas.cart import CartItemСreate
+from schemas.cart import CartItemCreate
 from db.operations import OrderDO
 from utils.redis_connect import get_redis
 from services.redis_cart import get_cart, remove_cart, repeat_item_to_cart
@@ -87,20 +87,33 @@ async def repeat_order_to_cart(
     redis: Redis = Depends(get_redis),
 ):
     # чистим корзину перед добавлением товаров из заказа
-    cart = await get_cart(user.id, redis, session)
+    cart = await get_cart(
+        user_id=user.id,
+        redis=redis,
+        session=session,
+    )
     if cart and cart.cart_items:
         await remove_cart(user.id, redis)
     db_order = await OrderDO.get_by_id(
-        order_id=order_id, user_id=user.id, session=session
+        order_id=order_id,
+        user_id=user.id,
+        session=session,
     )
     if not db_order:
         raise HTTPException(status_code=404, detail="Order not found")
 
     for order_item in db_order.order_items:
-        cart_item = CartItemСreate(
-            product_id=order_item.product_id, quantity=order_item.quantity
+        cart_item = CartItemCreate(
+            product_id=order_item.product_id,
+            size_id=order_item.size_id,
+            quantity=order_item.quantity,
         )
-        await repeat_item_to_cart(user.id, cart_item, redis, session)
+        await repeat_item_to_cart(
+            cart_item=cart_item,
+            user_id=user.id,
+            redis=redis,
+            session=session,
+        )
 
     return JSONResponse(
         content={"message": "Products from the order have been added to the cart"},

@@ -213,11 +213,13 @@ class ProductDO(BaseDO):
         try:
             logger.info(f"Fetching product with id {product_id} and size_id {size_id}")
             query = (
-                select(cls.model)
-                .join(ProductSize)
-                .where(cls.model.id == product_id, ProductSize.size_id == size_id)
+                select(ProductSize)
+                .join(Product)
+                .join(Size)
+                .where(ProductSize.product_id == product_id, ProductSize.size_id == size_id)
                 .options(
-                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                    selectinload(ProductSize.product),
+                    selectinload(ProductSize.size),
                 )
             )
             result = await session.execute(query)
