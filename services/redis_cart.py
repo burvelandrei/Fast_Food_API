@@ -84,7 +84,6 @@ async def get_cart(
             total_amount=0,
         )
     items = []
-    total_amount = 0
     for product_id, item_data in cart_items.items():
         item = json.loads(item_data)
         product = await ProductDO.get_by_id(session=session, id=int(product_id))
@@ -92,20 +91,15 @@ async def get_cart(
             logger.warning(f"Product {product_id} not found in DB, removing from cart")
             await redis.hdel(cart_key, str(product_id))
             continue
-        product = ProductOut(**product.__dict__)
-        total_price = product.final_price * int(item["quantity"])
-        total_amount += total_price
+        product_data = ProductOut(**product.__dict__)
         items.append(
             CartItemOut(
-                product=product,
-                quantity=int(item["quantity"]),
-                total_price=total_price,
+                product=product_data,
+                quantity=item["quantity"],
             )
         )
-
     return CartOut(
         cart_items=items,
-        total_amount=total_amount,
     )
 
 
@@ -129,14 +123,10 @@ async def get_cart_item(
     if not product:
         logger.warning(f"Product {product_id} not found in database")
         raise HTTPException(status_code=404, detail="Product not found")
-
-    product_out = ProductOut(**product.__dict__)
-    total_price = product_out.final_price * item["quantity"]
-
+    product_data = ProductOut(**product.__dict__)
     return CartItemOut(
-        product=product_out,
+        product=product_data,
         quantity=item["quantity"],
-        total_price=total_price,
     )
 
 

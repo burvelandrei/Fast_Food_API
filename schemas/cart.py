@@ -1,18 +1,24 @@
 from typing import List
 from decimal import Decimal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from schemas.product import ProductOut
 
 
 class CartItemOut(BaseModel):
     product: ProductOut
     quantity: int
-    total_price: Decimal
+
+    @computed_field
+    def total_price(self) -> Decimal:
+        return self.product.final_price * self.quantity
 
 
 class CartOut(BaseModel):
     cart_items: List[CartItemOut] = []
-    total_amount: Decimal
+
+    @computed_field
+    def total_amount(self) -> Decimal:
+        return sum(item.total_price for item in self.cart_items) or Decimal("0.00")
 
 
 class CartItemСreate(BaseModel):
