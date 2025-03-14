@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connect import get_session
 from schemas.product import ProductOut
 from db.operations import ProductDO
-from fastapi_cache.decorator import cache
-
+from utils.cache_manager import request_key_builder
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
 # Роутер получения всех продуктов по категории (если category_id=None то выводит все продукты)
 @router.get("/", response_model=list[ProductOut])
-@cache(expire=60)
+@cache(expire=60, key_builder=request_key_builder)
 async def get_products(
     category_id: int = Query(None),
     session: AsyncSession = Depends(get_session),
@@ -27,7 +27,7 @@ async def get_products(
 
 # Роутер получения продукта по id
 @router.get("/{product_id}/", response_model=ProductOut)
-@cache(expire=60)
+@cache(expire=60, key_builder=request_key_builder)
 async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),

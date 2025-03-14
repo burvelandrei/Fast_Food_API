@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from db.connect import get_session
@@ -8,9 +9,9 @@ from schemas.user import UserOut
 from schemas.cart import CartItemCreate
 from db.operations import OrderDO
 from utils.redis_connect import get_redis
+from utils.cache_manager import request_key_builder
 from services.redis_cart import get_cart, remove_cart, repeat_item_to_cart
 from services.auth import get_current_user
-from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -52,7 +53,7 @@ async def confirmation_order(
 
 # Роутер получения всех заказов пользователя (если указан status только заказы по статусу)
 @router.get("/", response_model=list[OrderOut])
-@cache(expire=20)
+@cache(expire=60, key_builder=request_key_builder)
 async def get_all_orders(
     status: str = Query(None),
     user: UserOut = Depends(get_current_user),
@@ -71,7 +72,7 @@ async def get_all_orders(
 
 # Роутер получения заказа пользователя
 @router.get("/{order_id}/", response_model=OrderOut)
-@cache(expire=60)
+@cache(expire=60, key_builder=request_key_builder)
 async def get_order(
     order_id: int,
     user: UserOut = Depends(get_current_user),

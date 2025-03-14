@@ -1,6 +1,7 @@
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from db.connect import get_session
@@ -19,8 +20,8 @@ from schemas.token import Token, RefreshTokenRequest
 from utils.redis_connect import get_redis
 from utils.send_email import send_confirmation_email
 from utils.rmq_producer import publish_confirmations
+from utils.cache_manager import request_key_builder
 from config import settings
-from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -71,7 +72,6 @@ async def register(
             )
         await redis.expire(f"confirm:{confirmation_token}", 30*60)
     background_tasks.add_task(send_confirmation_email, user_data.email, confirmation_token)
-    # await send_confirmation_email(user_data.email, confirmation_token)
     return JSONResponse(
         content={"message": "Check your email to confirm registration."},
         status_code=200,
@@ -110,10 +110,8 @@ async def confirmation_email(
                 session=session, id=db_user.id, **{"tg_id": user_data["tg_id"]}
             )
 
-    # Очищаем данные из Redis после подтверждения
     await redis.delete(f"confirm:{token}")
 
-    # Логика для веб-пользователей
     if "hashed_password" in user_data:
         access_token = create_access_token(
             data={"email": user_data["email"]},
@@ -184,6 +182,7 @@ async def logout_user(
 
 # Роутер профиля пользователя
 @router.get("/profile/", response_model=UserOut)
+@cache(expire=60, key_builder=request_key_builder)
 async def get_profile(user: UserOut = Depends(get_current_user)):
     return user
 
