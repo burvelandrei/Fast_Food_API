@@ -10,3 +10,13 @@ async def get_redis():
         decode_responses=True,
     )
     return redis
+
+
+async def get_redis_no_decode():
+    redis = Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        # password=settings.REDIS_PASSWORD,
+        decode_responses=False,
+    )
+    return redis
