@@ -17,9 +17,20 @@ conf = ConnectionConfig(
 async def send_confirmation_email(email: str, token: str):
     confirm_url = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}/users/confirm-email/{token}/"
     message = MessageSchema(
-        subject="Подтверждение почты",
+        subject="Подтверждение вашей электронной почты",
         recipients=[email],
-        body=f"Нажми на ссылку для подтверждения почты: {confirm_url}",
+        body=f"""
+        <html>
+            <body>
+                <h3>Подтверждение электронной почты</h3>
+                <p>Спасибо за регистрацию! Для завершения процесса, пожалуйста, подтвердите ваш email, нажав на ссылку ниже:</p>
+                <p><a href="{confirm_url}">{confirm_url}</a></p>
+                <p style="color: #ff0000; font-weight: bold;">
+                    Внимание: Если вы не регистрировались в нашем сервисе, пожалуйста, не переходите по ссылке и проигнорируйте это письмо.
+                </p>
+            </body>
+        </html>
+    """,
         subtype="html",
     )
     fm = FastMail(conf)
