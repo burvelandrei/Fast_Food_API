@@ -206,6 +206,20 @@ class ProductDO(BaseDO):
             raise e
 
     @classmethod
+    async def get_by_photo_name(cls, photo_name: str, session: AsyncSession):
+        """Получаем продукт по product_id и size_id"""
+        try:
+            logger.info(f"Fetching product with photo_name {photo_name}")
+            query = select(cls.model).where(cls.model.photo_name == photo_name)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(
+                f"An error occurred while fetching product with id {photo_name}: {e}",
+            )
+            raise e
+
+    @classmethod
     async def get_for_id_by_size_id(
         cls, product_id: int, size_id: int, session: AsyncSession
     ):
