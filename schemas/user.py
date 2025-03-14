@@ -1,10 +1,13 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
 
 
 class UserOut(BaseModel):
     id: int
     tg_id: str | None
     email: EmailStr | None
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserDataTg(BaseModel):

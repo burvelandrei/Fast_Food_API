@@ -5,9 +5,6 @@ from utils.s3_utils import check_file_exists
 from config import settings
 
 
-STATIC_DIR = "static/products/"
-
-
 class ProductCartOut(BaseModel):
     id: int
     name: str

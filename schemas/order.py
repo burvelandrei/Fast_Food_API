@@ -25,7 +25,7 @@ class OrderOut(BaseModel):
     status: OrderStatus
     delivery: "DeliveryOut"
     created_at: datetime
-    created_at_moscow: datetime
+    updated_at: datetime
 
 class DeliveryType(str, Enum):
     pickup = "pickup"

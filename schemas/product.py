@@ -1,6 +1,7 @@
 from typing import List
+from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, computed_field
 from utils.s3_utils import check_file_exists
 from config import settings
 
@@ -14,6 +15,8 @@ class ProductSizeOut(BaseModel):
     size: SizeOut
     price: Decimal
     discount: int
+    created_at: datetime
+    updated_at: datetime
 
     # Поле для вычисления финальной суммы (сумма * скидку)
     @computed_field
@@ -29,6 +32,8 @@ class ProductOut(BaseModel):
     description: str | None
     photo_name: str
     product_sizes: List[ProductSizeOut]
+    created_at: datetime
+    updated_at: datetime
 
     # Поле для формирования пути на фото продукта (если оно есть в s3 иначе None)
     @computed_field
