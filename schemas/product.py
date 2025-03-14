@@ -2,7 +2,7 @@ from typing import List
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from pydantic import BaseModel, computed_field
-from utils.s3_utils import check_file_exists
+from utils.s3_utils import check_file_exists_to_s3, get_last_modified_to_s3
 from config import settings
 
 
@@ -35,8 +35,13 @@ class ProductOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    # Поле для формирования пути на фото продукта (если оно есть в s3 иначе None)
+    # Поле для формирования пути на фото продукта c учётом последнего изменения
+    # (если оно есть в s3 иначе None)
     @computed_field
     def photo_path(self) -> str | None:
         photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
-        return f"/{photo_path}" if check_file_exists(file_path=photo_path) else None
+        if check_file_exists_to_s3(file_path=photo_path):
+            last_modifed = get_last_modified_to_s3(file_path=photo_path)
+            photo_url = f"/{photo_path}?{last_modifed}"
+            return photo_url
+        return None

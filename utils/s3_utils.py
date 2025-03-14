@@ -20,7 +20,7 @@ s3_client = boto3.client(
 )
 
 
-def check_file_exists(
+def check_file_exists_to_s3(
     file_path: str,
 ):
     """
@@ -39,6 +39,15 @@ def check_file_exists(
             raise e
 
 
+def get_last_modified_to_s3(file_path: str):
+    response = s3_client.head_object(
+        Bucket=settings.S3_BACKET,
+        Key=file_path,
+    )
+    last_modified = response["LastModified"]
+    return last_modified
+
+
 async def upload_to_s3(
     file_folder: str,
     file: UploadFile,
@@ -51,7 +60,7 @@ async def upload_to_s3(
     """
     new_photo_name = file.filename
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_photo_name}"
-    file_exists = check_file_exists(file_path)
+    file_exists = check_file_exists_to_s3(file_path)
     if file_exists:
         async with AsyncSessionLocal() as session:
             existing_product = await ProductDO.get_by_photo_name(
@@ -96,6 +105,6 @@ def get_s3_url(file_folder: str, file_name: str):
     if not file_folder or not file_name:
         return None
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{file_name}"
-    if check_file_exists(file_path=file_path):
+    if check_file_exists_to_s3(file_path=file_path):
         return f"{settings.S3_HOST}{settings.S3_BACKET}/{file_path}"
     return None
