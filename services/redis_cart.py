@@ -55,7 +55,7 @@ async def add_to_cart(
     cart_items = await redis.hlen(cart_key)
     await redis.hset(cart_key, cart_item_id, json.dumps(existing_item))
     if not cart_items:
-        await redis.expire(cart_key, 24 * 60 * 60)
+        await redis.expire(cart_key, 60 * 60)
 
 
 async def update_cart_item(
@@ -239,4 +239,4 @@ async def repeat_item_to_cart(
     cart_items = await redis.hlen(cart_key)
     await redis.hset(cart_key, cart_item_id, json.dumps(cart_item.__dict__))
     if not cart_items:
-        await redis.expire(cart_key, 24 * 60 * 60)
+        await redis.expire(cart_key, 60 * 60)

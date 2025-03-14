@@ -55,7 +55,7 @@ async def register(
         if update_fields:
             update_fields["email"] = user_data.email
             await redis.hset(f"confirm:{confirmation_token}", mapping=update_fields)
-            await redis.expire(f"confirm:{confirmation_token}", 1800)
+            await redis.expire(f"confirm:{confirmation_token}", 30*60)
         else:
             raise HTTPException(status_code=400, detail="User already registered")
     else:
@@ -69,7 +69,7 @@ async def register(
             await redis.hset(
                 f"confirm:{confirmation_token}", mapping=user_data.__dict__
             )
-        await redis.expire(f"confirm:{confirmation_token}", 1800)
+        await redis.expire(f"confirm:{confirmation_token}", 30*60)
     background_tasks.add_task(send_confirmation_email, user_data.email, confirmation_token)
     # await send_confirmation_email(user_data.email, confirmation_token)
     return JSONResponse(
