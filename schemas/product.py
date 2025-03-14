@@ -35,10 +35,3 @@ class ProductOut(BaseModel):
     def photo_path(self) -> str | None:
         photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
         return f"/{photo_path}" if check_file_exists(file_path=photo_path) else None
-
-
-class ProductCreate(BaseModel):
-    name: str
-    description: str | None
-    price: float = Field(ge=0)
-    discount: int = Field(ge=0, le=100)

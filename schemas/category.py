@@ -6,7 +6,3 @@ from schemas.product import ProductOut
 class CategoryOut(BaseModel):
     id: int
     name: str
-
-
-class CategoryCreate(BaseModel):
-    name: str
