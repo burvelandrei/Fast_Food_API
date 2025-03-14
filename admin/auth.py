@@ -1,6 +1,5 @@
 import jwt
 from fastapi import Request
-from db.connect import get_session
 from db.operations import UserDO
 from sqladmin.authentication import AuthenticationBackend
 from db.connect import AsyncSessionLocal

@@ -12,7 +12,7 @@ from db.models import (
 )
 from db.connect import engine
 from admin.auth import admin_auth
-from utils.s3_utils import upload_to_s3, delete_from_s3, get_s3_url, check_file_exists
+from utils.s3_utils import upload_to_s3, delete_from_s3, get_s3_url
 
 
 class UserAdmin(ModelView, model=User):
@@ -20,6 +20,7 @@ class UserAdmin(ModelView, model=User):
         "id",
         "email",
         "tg_id",
+        "created_at",
     ]
     column_searchable_list = [
         "id",
@@ -34,8 +35,15 @@ class UserAdmin(ModelView, model=User):
         "hashed_password",
         "orders",
         "is_admin",
+        "created_at",
+        "updated_at",
     ]
+    form_widget_args = {
+        "created_at": {"readonly": True},
+        "updated_at": {"readonly": True},
+    }
     can_create = False
+    can_export = False
 
 
 class CategoryAdmin(ModelView, model=Category):
@@ -54,6 +62,7 @@ class CategoryAdmin(ModelView, model=Category):
     form_excluded_columns = [
         "products",
     ]
+    can_export = False
 
 
 class ProductAdmin(ModelView, model=Product):
@@ -70,12 +79,16 @@ class ProductAdmin(ModelView, model=Product):
         "id",
         "name",
     ]
-
     column_details_exclude_list = ["product_sizes"]
-    form_excluded_columns = ["product_sizes"]
+    form_excluded_columns = [
+        "product_sizes",
+        "created_at",
+        "updated_at",
+    ]
     edit_template = "sqladmin/product/edit.html"
     form_args = {"photo_name": {"label": "Photo"}}
     form_overrides = {"photo_name": FileField}
+    can_export = False
 
     def get_photo_url(self, obj):
         return get_s3_url(file_folder="products", file_name=obj.photo_name)
@@ -107,6 +120,7 @@ class SizeAdmin(ModelView, model=Size):
     column_sortable_list = ["id"]
     column_details_exclude_list = ["size_products"]
     form_excluded_columns = ["size_products"]
+    can_export = False
 
 
 class ProductSizeAdmin(ModelView, model=ProductSize):
@@ -120,6 +134,11 @@ class ProductSizeAdmin(ModelView, model=ProductSize):
     ]
     column_searchable_list = ["product_id", "size_id"]
     column_sortable_list = ["product_id", "size_id"]
+    form_excluded_columns = [
+        "created_at",
+        "updated_at",
+    ]
+    can_export = False
 
 
 class OrderAdmin(ModelView, model=Order):
@@ -128,11 +147,11 @@ class OrderAdmin(ModelView, model=Order):
         "user_id",
         "total_amount",
         "status",
-        "created_at_moscow",
+        "created_at",
     ]
     column_default_sort = [
         ("status_sort", False),
-        ("created_at_moscow", True),
+        ("created_at", True),
     ]
     column_searchable_list = [
         "id",
@@ -142,7 +161,7 @@ class OrderAdmin(ModelView, model=Order):
         "id",
         "user_id",
         "status",
-        "created_at_moscow",
+        "created_at",
     ]
     form_columns = [
         "user",
@@ -150,11 +169,8 @@ class OrderAdmin(ModelView, model=Order):
         "order_items",
         "total_amount",
         "status",
-        "created_at",
     ]
-    form_widget_args = {
-        "created_at": {"readonly": True},
-    }
+    can_export = False
 
 
 class OrderItemAdmin(ModelView, model=OrderItem):
@@ -176,10 +192,16 @@ class OrderItemAdmin(ModelView, model=OrderItem):
         "product_id",
         "name",
     ]
+    can_export = False
 
 
 class DeliveryAdmin(ModelView, model=Delivery):
-    column_list = ["id", "order_id", "delivery_type", "delivery_address"]
+    column_list = [
+        "id",
+        "order_id",
+        "delivery_type",
+        "delivery_address",
+    ]
     column_searchable_list = [
         "order_id",
         "delivery_address",
@@ -188,6 +210,7 @@ class DeliveryAdmin(ModelView, model=Delivery):
         "order_id",
         "delivery_type",
     ]
+    can_export = False
 
 
 # Функция для инициализации админки и подключения моделей админки
