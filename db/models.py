@@ -12,11 +12,23 @@ from sqlalchemy.orm import (
 from schemas.order import OrderStatus, DeliveryType
 
 
+class TimestampMixin:
+    created_at: Mapped[datetime] = mapped_column(
+        default=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
+        onupdate=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
+        nullable=False,
+    )
+
+
 class Base(DeclarativeBase):
     pass
 
 
-class User(Base):
+class User(Base, TimestampMixin):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -47,7 +59,7 @@ class Category(Base):
         return f"{self.id} - {self.name}"
 
 
-class Product(Base):
+class Product(Base, TimestampMixin):
     __tablename__ = "product"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -81,7 +93,7 @@ class Size(Base):
         return f"{self.name}"
 
 
-class ProductSize(Base):
+class ProductSize(Base, TimestampMixin):
     __tablename__ = "product_size"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -99,7 +111,7 @@ class ProductSize(Base):
         return f"{self.size.name} - {self.price} - {self.discount}"
 
 
-class Order(Base):
+class Order(Base, TimestampMixin):
     __tablename__ = "order"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -110,9 +122,6 @@ class Order(Base):
         Enum(OrderStatus, name="orderstatus", create_type=True),
         default=OrderStatus.processing,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow().replace(microsecond=0)
-    )
 
     status_sort = column_property(
         case(
@@ -120,9 +129,6 @@ class Order(Base):
             (status == OrderStatus.completed, 2),
             else_=3,
         )
-    )
-    created_at_moscow = column_property(
-        func.timezone("Europe/Moscow", func.timezone("UTC", created_at))
     )
 
     user: Mapped["User"] = relationship(back_populates="orders")
