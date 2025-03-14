@@ -17,7 +17,7 @@ conf = ConnectionConfig(
 async def send_confirmation_email(email: str, token: str):
     confirm_url = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}/users/confirm-email/{token}/"
     message = MessageSchema(
-        subject="Подтверждение вашей электронной почты",
+        subject="Подтверждение электронной почты",
         recipients=[email],
         body=f"""
         <html>
