@@ -2,6 +2,7 @@ from typing import List
 from decimal import Decimal, ROUND_HALF_UP
 from pydantic import BaseModel, Field, computed_field
 from utils.s3_utils import check_file_exists
+from config import settings
 
 
 STATIC_DIR = "static/products/"
@@ -24,11 +25,11 @@ class ProductCartOut(BaseModel):
         final_price = self.price - (self.price * discount_decimal)
         return final_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+    # Поле для формирования пути на фото продукта (если оно есть в s3 иначе None)
     @computed_field
-    def photo_url(self) -> str | None:
-        """Формирование URL для фото"""
-        photo_path = f"{STATIC_DIR}{self.photo_name}"
-        return f"/{photo_path}" if check_file_exists(key=photo_path) else None
+    def photo_path(self) -> str | None:
+        photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
+        return f"/{photo_path}" if check_file_exists(file_path=photo_path) else None
 
 
 class CartItemOut(BaseModel):

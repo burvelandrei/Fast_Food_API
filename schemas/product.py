@@ -2,9 +2,7 @@ from typing import List
 from decimal import Decimal, ROUND_HALF_UP
 from pydantic import BaseModel, Field, computed_field
 from utils.s3_utils import check_file_exists
-
-
-STATIC_DIR = "static/products/"
+from config import settings
 
 
 class SizeOut(BaseModel):
@@ -34,9 +32,9 @@ class ProductOut(BaseModel):
 
     # Поле для формирования пути на фото продукта (если оно есть в s3 иначе None)
     @computed_field
-    def photo_url(self) -> str | None:
-        photo_path = f"{STATIC_DIR}{self.photo_name}"
-        return f"/{photo_path}" if check_file_exists(key=photo_path) else None
+    def photo_path(self) -> str | None:
+        photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
+        return f"/{photo_path}" if check_file_exists(file_path=photo_path) else None
 
 
 class ProductCreate(BaseModel):

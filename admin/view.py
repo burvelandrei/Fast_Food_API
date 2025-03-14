@@ -1,4 +1,5 @@
 from sqladmin import Admin, ModelView
+from wtforms import FileField
 from db.models import (
     User,
     Category,
@@ -11,6 +12,8 @@ from db.models import (
 )
 from db.connect import engine
 from admin.auth import admin_auth
+from utils.s3_utils import upload_to_s3, delete_from_s3
+from config import settings
 
 
 class UserAdmin(ModelView, model=User):
@@ -68,8 +71,26 @@ class ProductAdmin(ModelView, model=Product):
         "id",
         "name",
     ]
+
     column_details_exclude_list = ["product_sizes"]
     form_excluded_columns = ["product_sizes"]
+    form_args = {"photo_name": {"label": "Photo"}}
+    form_overrides = {"photo_name": FileField}
+
+    async def on_model_change(self, data, model, is_created, request):
+        file = data.get("photo_name")
+        if file:
+            photo_name = await upload_to_s3(file_folder="products", file=file)
+            model.photo_name = photo_name
+            data["photo_name"] = photo_name
+
+    async def on_model_delete(self, model, request):
+        if model.photo_name:
+            delete_from_s3(
+                file_folder="products",
+                file_name=model.photo_name,
+            )
+
 
 class SizeAdmin(ModelView, model=Size):
     column_list = ["id", "name"]
@@ -88,14 +109,9 @@ class ProductSizeAdmin(ModelView, model=ProductSize):
         "price",
         "discount",
     ]
-    column_searchable_list = [
-        "product_id",
-        "size_id"
-    ]
-    column_sortable_list = [
-        "product_id",
-        "size_id"
-    ]
+    column_searchable_list = ["product_id", "size_id"]
+    column_sortable_list = ["product_id", "size_id"]
+
 
 class OrderAdmin(ModelView, model=Order):
     column_list = [

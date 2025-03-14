@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     SECRET_KEY_BOT: str
     ALGORITHM: str = "HS256"
 
+    STATIC_DIR: str = "static"
+
     S3_HOST: str
     S3_BACKET: str
     S3_ACCESS_KEY: str
