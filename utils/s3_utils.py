@@ -58,13 +58,13 @@ async def upload_to_s3(
     Загружает файл в S3, если файл для этого продукта существукт - удаляем его,
     если файл с таким именем уже есть у другого продукта - выбрасывем исключение
     """
-    new_photo_name = file.filename
-    file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_photo_name}"
+    new_file_name = file.filename
+    file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_file_name}"
     file_exists = check_file_exists_to_s3(file_path)
     if file_exists:
         async with AsyncSessionLocal() as session:
             existing_product = await ProductDO.get_by_photo_name(
-                photo_name=new_photo_name,
+                photo_name=new_file_name,
                 session=session,
             )
         if existing_product and existing_product.id != model.id:
@@ -72,16 +72,16 @@ async def upload_to_s3(
                 status_code=400,
                 detail="The file with this name already exists for another product!",
             )
-    old_photo_name = None if is_created else model.photo_name
-    if old_photo_name and old_photo_name != new_photo_name:
-        await delete_from_s3(file_folder, old_photo_name)
+    old_file_name = None if is_created else model.photo_name
+    if old_file_name and old_file_name != new_file_name:
+        await delete_from_s3(file_folder, old_file_name)
     s3_client.upload_fileobj(
         file.file,
         settings.S3_BACKET,
         file_path,
         ExtraArgs={"ACL": "public-read"},
     )
-    return new_photo_name
+    return new_file_name
 
 
 async def delete_from_s3(file_folder: str, file_name: str):
