@@ -120,14 +120,17 @@ class Order(Base, TimestampMixin):
     total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     status: Mapped[str] = mapped_column(
         Enum(OrderStatus, name="orderstatus", create_type=True),
-        default=OrderStatus.processing,
+        default=OrderStatus.CREATED,
     )
 
     status_sort = column_property(
         case(
-            (status == OrderStatus.processing, 1),
-            (status == OrderStatus.completed, 2),
-            else_=3,
+            (status == OrderStatus.CREATED, 1),
+            (status == OrderStatus.COOKING, 2),
+            (status == OrderStatus.READY, 3),
+            (status == OrderStatus.DELIVERING, 4),
+            (status == OrderStatus.COMPLETED, 5),
+            else_=6,
         )
     )
 
@@ -152,8 +155,8 @@ class OrderItem(Base):
         ForeignKey("order.id", ondelete="CASCADE"), primary_key=True
     )
     product_id: Mapped[int] = mapped_column(nullable=False, primary_key=True)
+    size_id: Mapped[int] = mapped_column(nullable=False, primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    size_id: Mapped[int] = mapped_column(nullable=False)
     size_name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
     total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)

@@ -4,9 +4,14 @@ from decimal import Decimal
 from typing import List
 from enum import Enum
 
+
 class OrderStatus(str, Enum):
-    processing = "processing"
-    completed = "completed"
+    CREATED = "created"
+    COOKING = "cooking"
+    READY = "ready"
+    DELIVERING = "delivering"
+    COMPLETED = "completed"
+
 
 class OrderItemOut(BaseModel):
     product_id: int
@@ -27,13 +32,16 @@ class OrderOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class DeliveryType(str, Enum):
     pickup = "pickup"
     courier = "courier"
 
+
 class DeliveryCreate(BaseModel):
     delivery_type: DeliveryType
     delivery_address: str | None = None
+
 
 class DeliveryOut(BaseModel):
     id: int

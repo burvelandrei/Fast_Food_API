@@ -3,6 +3,7 @@ import logging.config
 from sqlalchemy import select, desc, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 from db.models import (
     User,
     Product,
@@ -349,6 +350,37 @@ class OrderDO(BaseDO):
                 f"An error occurred while fetching orders for user ID {user_id}: {e}",
             )
             raise e
+
+    @classmethod
+    async def get_all_by_statuses(
+        cls,
+        user_id: int,
+        statuses: List[str],
+        session: AsyncSession,
+    ):
+        """Получение всех orders для user_id по указанным статусам"""
+        try:
+            logger.info(
+                f"Fetching orders for user ID {user_id} with statuses: {statuses}"
+            )
+            query = (
+                select(cls.model)
+                .where(cls.model.user_id == user_id)
+                .where(cls.model.status.in_(statuses))
+                .options(
+                    selectinload(cls.model.order_items),
+                    selectinload(cls.model.delivery),
+                )
+                .order_by(desc(cls.model.created_at))
+            )
+            result = await session.execute(query)
+            orders = result.scalars().all()
+            return orders
+        except Exception as e:
+            logger.error(
+                f"Error fetching orders for user ID {user_id}: {e}", exc_info=True
+            )
+            raise
 
     @classmethod
     async def get_by_id(cls, order_id: int, user_id: int, session: AsyncSession):

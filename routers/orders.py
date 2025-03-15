@@ -4,7 +4,7 @@ from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 from db.connect import get_session
-from schemas.order import OrderOut, DeliveryCreate
+from schemas.order import OrderOut, DeliveryCreate, OrderStatus
 from schemas.user import UserOut
 from schemas.cart import CartItemCreate
 from db.operations import OrderDO
@@ -53,7 +53,7 @@ async def confirmation_order(
 
 # Роутер получения всех заказов пользователя (если указан status только заказы по статусу)
 @router.get("/", response_model=list[OrderOut])
-@cache(expire=60, key_builder=request_key_builder)
+@cache(expire=30, key_builder=request_key_builder)
 async def get_all_orders(
     status: str = Query(None),
     user: UserOut = Depends(get_current_user),
@@ -70,9 +70,42 @@ async def get_all_orders(
     return orders
 
 
+# Получение выполненных заказов
+@router.get("/history/", response_model=list[OrderOut])
+@cache(expire=30, key_builder=request_key_builder)
+async def get_order_history(
+    user: UserOut = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    orders = await OrderDO.get_all_by_status(
+        user_id=user.id,
+        status=OrderStatus.COMPLETED.value,
+        session=session,
+    )
+    return orders
+
+
+# Получение всех заказов, кроме выполненных (текущие заказы)
+@router.get("/current/", response_model=list[OrderOut])
+@cache(expire=30, key_builder=request_key_builder)
+async def get_current_orders(
+    user: UserOut = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    statuses = [
+        status.value for status in OrderStatus if status != OrderStatus.COMPLETED
+    ]
+    orders = await OrderDO.get_all_by_statuses(
+        user_id=user.id,
+        statuses=statuses,
+        session=session,
+    )
+    return orders
+
+
 # Роутер получения заказа пользователя
 @router.get("/{order_id}/", response_model=OrderOut)
-@cache(expire=60, key_builder=request_key_builder)
+@cache(expire=30, key_builder=request_key_builder)
 async def get_order(
     order_id: int,
     user: UserOut = Depends(get_current_user),
