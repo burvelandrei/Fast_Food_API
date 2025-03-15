@@ -51,7 +51,7 @@ class CookieMiddleware:
             secure: bool = False,
             httponly: bool = True,
             samesite: typing.Literal["lax", "strict", "none"] = "lax",
-        ) -> None:
+        ):
             cookie_parts = [f"{name}={value}"]
             if max_age is not None:
                 cookie_parts.append(f"Max-Age={max_age}")

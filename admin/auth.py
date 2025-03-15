@@ -44,16 +44,11 @@ class JWTAuthBackend(AuthenticationBackend):
         )
         # устанавливаем cookie в scope
         request.scope["set_cookie"](
-            "access_token",
-            access_token,
-            max_age=7 * 24 * 60 * 60,
+            "access_token", access_token, max_age=7 * 24 * 60 * 60
         )
         request.scope["set_cookie"](
-            "refresh_token",
-            refresh_token,
-            max_age=7 * 24 * 60 * 60,
+            "refresh_token", refresh_token, max_age=7 * 24 * 60 * 60
         )
-
         return True
 
     async def logout(self, request: Request):
@@ -67,11 +62,22 @@ class JWTAuthBackend(AuthenticationBackend):
         if not access_token:
             return False
         try:
-            jwt.decode(
+
+            payload = jwt.decode(
                 access_token,
                 settings.SECRET_KEY_ADMIN,
                 algorithms=[settings.ALGORITHM],
             )
+            email = payload.get("email")
+            if not email:
+                return False
+
+            async with AsyncSessionLocal() as session:
+                user = await UserDO.get_by_email(email=email, session=session)
+                if not user or not user.is_admin:
+                    request.scope["set_cookie"]("access_token", "", max_age=0)
+                    request.scope["set_cookie"]("refresh_token", "", max_age=0)
+                    return False
             return True
         except jwt.ExpiredSignatureError:
             # если токен access истёк пробуем обновить через refresh
@@ -82,6 +88,16 @@ class JWTAuthBackend(AuthenticationBackend):
                         settings.SECRET_KEY_ADMIN,
                         algorithms=[settings.ALGORITHM],
                     )
+                    email = payload.get("email")
+                    if not email:
+                        return False
+
+                    async with AsyncSessionLocal() as session:
+                        user = await UserDO.get_by_email(email=email, session=session)
+                        if not user or not user.is_admin:
+                            request.scope["set_cookie"]("access_token", "", max_age=0)
+                            request.scope["set_cookie"]("refresh_token", "", max_age=0)
+                            return False
                     new_access_token = create_access_token(
                         data={"email": payload["email"]},
                         secret_key=settings.SECRET_KEY_ADMIN,
