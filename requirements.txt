@@ -16,6 +16,7 @@ fastapi-mail==1.4.2
 aio-pika==9.5.5
 pydantic-settings==2.8.1
 faker==37.0.0
+factory-boy==3.3.3
 itsdangerous==2.2
 pytest-asyncio==0.25.3
 pytest-mock==3.14.0

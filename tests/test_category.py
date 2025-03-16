@@ -1,24 +1,22 @@
 import pytest
 from db.operations import CategoryDO
+from tests.fixtures import category
 
 
 @pytest.mark.asyncio
 async def test_get_categorу(
     client,
-    test_session,
+    category,
     test_cache_manager,
     mocker,
 ):
-    await CategoryDO.add(test_session, name="Category 1")
-    await CategoryDO.add(test_session, name="Category 2")
-
     response = await client.get("/category/")
     assert response.status_code == 200
     data = response.json()
 
-    assert len(data) == 2
-    assert data[0]["name"] == "Category 1"
-    assert data[1]["name"] == "Category 2"
+    assert len(data) == len(category)
+    for i, category in enumerate(category):
+        assert data[i]["name"] == category.name
 
     fetch_from_db_mock = mocker.patch(
         "db.operations.CategoryDO.get_all",

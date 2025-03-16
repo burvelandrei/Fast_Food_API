@@ -31,6 +31,7 @@ class ProductOut(BaseModel):
     name: str
     description: str | None
     photo_name: str | None
+    category_id: int
     product_sizes: List[ProductSizeOut]
     created_at: datetime
     updated_at: datetime
