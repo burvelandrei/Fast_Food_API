@@ -30,7 +30,7 @@ class ProductOut(BaseModel):
     id: int
     name: str
     description: str | None
-    photo_name: str
+    photo_name: str | None
     product_sizes: List[ProductSizeOut]
     created_at: datetime
     updated_at: datetime
@@ -39,9 +39,10 @@ class ProductOut(BaseModel):
     # (если оно есть в s3 иначе None)
     @computed_field
     def photo_path(self) -> str | None:
-        photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
-        if check_file_exists_to_s3(file_path=photo_path):
-            last_modifed = get_last_modified_to_s3(file_path=photo_path)
-            photo_url = f"/{photo_path}?{last_modifed}"
-            return photo_url
+        if self.photo_name:
+            photo_path = f"{settings.STATIC_DIR}/products/{self.photo_name}"
+            if check_file_exists_to_s3(file_path=photo_path):
+                last_modifed = get_last_modified_to_s3(file_path=photo_path)
+                photo_url = f"/{photo_path}?{last_modifed}"
+                return photo_url
         return None
