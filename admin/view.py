@@ -1,4 +1,4 @@
-from sqladmin import Admin, ModelView
+from sqladmin import ModelView
 from wtforms import FileField
 from db.models import (
     User,
@@ -12,7 +12,8 @@ from db.models import (
 )
 from db.connect import engine
 from admin.auth import admin_auth
-from utils.s3_utils import upload_to_s3, delete_from_s3, get_s3_url
+from admin.сustom_admin import CustomAdmin
+from utils.s3_utils import upload_to_s3, get_s3_url, delete_from_s3
 
 
 class UserAdmin(ModelView, model=User):
@@ -91,11 +92,13 @@ class ProductAdmin(ModelView, model=Product):
     can_export = False
 
     def get_photo_url(self, obj):
-        return get_s3_url(file_folder="products", file_name=obj.photo_name)
+        model_name = obj.__class__.__name__
+        file_folder = model_name.lower() + "s"
+        return get_s3_url(file_folder=file_folder, file_name=obj.photo_name)
 
     async def on_model_change(self, data, model, is_created, request):
         file = data.get("photo_name")
-        file_folder = "products"
+        file_folder = model.__class__.__name__.lower() + "s"
         if file:
             uploaded_photo_name = await upload_to_s3(
                 file_folder=file_folder,
@@ -109,7 +112,7 @@ class ProductAdmin(ModelView, model=Product):
     async def on_model_delete(self, model, request):
         if model.photo_name:
             await delete_from_s3(
-                file_folder="products",
+                file_folder = model.__class__.__name__.lower() + "s",
                 file_name=model.photo_name,
             )
 
@@ -215,11 +218,12 @@ class DeliveryAdmin(ModelView, model=Delivery):
 
 # Функция для инициализации админки и подключения моделей админки
 def setup_admin(app):
-    admin = Admin(
+    admin = CustomAdmin(
         app,
         engine,
         authentication_backend=admin_auth,
         templates_dir="admin/templates",
+        debug=True
     )
     admin.add_view(UserAdmin)
     admin.add_view(CategoryAdmin)
