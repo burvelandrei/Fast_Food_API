@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
@@ -26,7 +27,6 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str
     REDIS_PORT: int
-    REDIS_PASSWORD: str
 
     MAIL_USERNAME: str
     MAIL_PASSWORD: str
@@ -39,9 +39,15 @@ class Settings(BaseSettings):
     RMQ_USER: str
     RMQ_PASSWORD: str
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    TEST_DB_USER: str
+    TEST_DB_PASSWORD: str
+    TEST_DB_HOST: str
+    TEST_DB_PORT: int
+    TEST_DB_NAME: str
 
+    TEST_REDIS_HOST: str
+    TEST_REDIS_PORT: int
+
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()
