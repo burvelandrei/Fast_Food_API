@@ -105,6 +105,8 @@ def get_s3_url(file_folder: str, file_name: str):
     if not file_folder or not file_name:
         return None
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{file_name}"
+    last_modifed = get_last_modified_to_s3(file_path=file_path)
     if check_file_exists_to_s3(file_path=file_path):
-        return f"{settings.S3_HOST}{settings.S3_BACKET}/{file_path}"
+        file_url = f"/{file_path}?{last_modifed}"
+        return f"{settings.S3_HOST}{settings.S3_BACKET}{file_url}"
     return None
