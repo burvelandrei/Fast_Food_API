@@ -82,6 +82,28 @@ async def test_redis():
     await redis.aclose()
 
 
+@pytest_asyncio.fixture(autouse=True)
+def override_secret_keys():
+    """
+    Фикстура для переопределения SECRET_KEY на время тестов
+    """
+    original_keys = {
+        "SECRET_KEY": settings.SECRET_KEY,
+        "SECRET_KEY_EMAIL": settings.SECRET_KEY_EMAIL,
+        "SECRET_KEY_BOT": settings.SECRET_KEY_BOT,
+    }
+
+    settings.SECRET_KEY = "test-secret-key"
+    settings.SECRET_KEY_EMAIL = "test-secret-key-email"
+    settings.SECRET_KEY_BOT = "test-secret-key-bot"
+
+    yield
+
+    settings.SECRET_KEY = original_keys["SECRET_KEY"]
+    settings.SECRET_KEY_EMAIL = original_keys["SECRET_KEY_EMAIL"]
+    settings.SECRET_KEY_BOT = original_keys["SECRET_KEY_BOT"]
+
+
 @pytest_asyncio.fixture
 async def client(test_session, test_redis):
     """Подмена зависимостей и тестовый клиент"""
