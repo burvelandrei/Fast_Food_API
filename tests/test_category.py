@@ -1,10 +1,14 @@
 import pytest
 from db.operations import CategoryDO
-from fastapi_cache import FastAPICache
 
 
 @pytest.mark.asyncio
-async def test_get_categories(client, test_session, test_cache_manager, mocker):
+async def test_get_categorу(
+    client,
+    test_session,
+    test_cache_manager,
+    mocker,
+):
     await CategoryDO.add(test_session, name="Category 1")
     await CategoryDO.add(test_session, name="Category 2")
 
