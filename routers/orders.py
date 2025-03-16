@@ -10,7 +10,7 @@ from schemas.cart import CartItemCreate
 from db.operations import OrderDO
 from utils.redis_connect import get_redis
 from utils.cache_manager import request_key_builder
-from services.redis_cart import get_cart, remove_cart, repeat_item_to_cart
+from services.redis_cart import CartDO
 from services.auth import get_current_user
 
 
@@ -25,7 +25,7 @@ async def confirmation_order(
     redis: Redis = Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    cart = await get_cart(
+    cart = await CartDO.get_cart(
         user_id=user.id,
         redis=redis,
         session=session,
@@ -37,7 +37,7 @@ async def confirmation_order(
             values=cart,
             delivery_data=delivery_data,
         )
-        await remove_cart(
+        await CartDO.remove_cart(
             user_id=user.id,
             redis=redis,
         )
@@ -128,13 +128,13 @@ async def repeat_order_to_cart(
     redis: Redis = Depends(get_redis),
 ):
     # чистим корзину перед добавлением товаров из заказа
-    cart = await get_cart(
+    cart = await CartDO.get_cart(
         user_id=user.id,
         redis=redis,
         session=session,
     )
     if cart and cart.cart_items:
-        await remove_cart(user.id, redis)
+        await CartDO.remove_cart(user.id, redis)
     db_order = await OrderDO.get_by_id(
         order_id=order_id,
         user_id=user.id,
@@ -149,7 +149,7 @@ async def repeat_order_to_cart(
             size_id=order_item.size_id,
             quantity=order_item.quantity,
         )
-        await repeat_item_to_cart(
+        await CartDO.repeat_item_to_cart(
             cart_item=cart_item,
             user_id=user.id,
             redis=redis,

@@ -5,14 +5,7 @@ from schemas.cart import CartItemModify
 from schemas.user import UserOut
 from db.connect import get_session
 from utils.redis_connect import get_redis
-from services.redis_cart import (
-    add_to_cart,
-    get_cart,
-    get_cart_item,
-    remove_item,
-    remove_cart,
-    update_cart_item,
-)
+from services.redis_cart import CartDO
 from services.auth import get_current_user
 
 
@@ -28,7 +21,7 @@ async def add_item_to_cart(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    await add_to_cart(
+    await CartDO.add_to_cart(
         product_id=product_id,
         size_id=size_id,
         user_id=user.id,
@@ -51,7 +44,7 @@ async def update_item_to_cart(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    await update_cart_item(
+    await CartDO.update_cart_item(
         product_id=product_id,
         size_id=size_id,
         quantity=item_parametrs.quantity,
@@ -72,7 +65,7 @@ async def get_cart_user(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_cart(user.id, redis, session)
+    return await CartDO.get_cart(user.id, redis, session)
 
 
 # Роутер получения продукта из корзины пользователя
@@ -84,7 +77,7 @@ async def get_cart_item_user(
     redis=Depends(get_redis),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_cart_item(
+    return await CartDO.get_cart_item(
         product_id=product_id,
         size_id=size_id,
         user_id=user.id,
@@ -101,7 +94,7 @@ async def delete_item_from_cart(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
 ):
-    await remove_item(
+    await CartDO.remove_item(
         product_id=product_id,
         size_id=size_id,
         user_id=user.id,
@@ -119,7 +112,7 @@ async def delete_cart(
     user: UserOut = Depends(get_current_user),
     redis=Depends(get_redis),
 ):
-    await remove_cart(user_id=user.id, redis=redis)
+    await CartDO.remove_cart(user_id=user.id, redis=redis)
     return JSONResponse(
         content={"message": "Cart successfully removed"},
         status_code=200,
