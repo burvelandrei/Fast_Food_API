@@ -1,8 +1,10 @@
 import factory
+import json
 from faker import Faker
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import Category, Product, Size, ProductSize, User
+from schemas.cart import CartItemCreate
 from services.auth import get_hash_password
 
 fake = Faker()
@@ -50,8 +52,8 @@ class ProductFactory(AsyncSQLAlchemyModelFactory):
     name = factory.LazyAttribute(lambda _: fake.word())
     description = factory.LazyAttribute(lambda _: fake.text())
     photo_name = factory.LazyAttribute(lambda _: fake.file_name(extension="jpg"))
-    category = factory.SubFactory(CategoryFactory)
-    category_id = factory.LazyAttribute(lambda o: o.category.id)
+    category = None
+    category_id = factory.LazyAttribute(lambda o: o.category.id if o.category else None)
 
 
 class ProductSizeFactory(AsyncSQLAlchemyModelFactory):
@@ -67,7 +69,7 @@ class ProductSizeFactory(AsyncSQLAlchemyModelFactory):
 
 
 class WebUserFactory(AsyncSQLAlchemyModelFactory):
-    """Фабрика для пользователей, зарегистрированных через апи."""
+    """Фабрика для пользователей, зарегистрированных через апи"""
 
     class Meta:
         model = User
@@ -87,3 +89,32 @@ class TgUserFactory(AsyncSQLAlchemyModelFactory):
     email = factory.Faker("email")
     hashed_password = ""
     is_admin = False
+
+
+class CartFactory:
+    """Фабрика для создания корзины"""
+
+    @staticmethod
+    async def create_cart_item(
+        test_redis,
+        user_id: int,
+        product_id: int,
+        size_id: int,
+        quantity: int,
+    ) -> tuple[str, str]:
+
+        cart_item = CartItemCreate(
+            product_id=product_id,
+            size_id=size_id,
+            quantity=quantity,
+        )
+        cart_key = f"cart:{user_id}"
+        cart_item_id = f"{product_id}:{size_id}"
+        await test_redis.hset(cart_key, cart_item_id, json.dumps(cart_item.dict()))
+        return cart_key, cart_item_id
+
+    @staticmethod
+    async def clear_cart(test_redis, user_id: int):
+        """Очищает корзину пользователя"""
+        cart_key = f"cart:{user_id}"
+        await test_redis.delete(cart_key)
