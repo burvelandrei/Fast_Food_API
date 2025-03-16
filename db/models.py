@@ -65,7 +65,7 @@ class Product(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
-    photo_name: Mapped[str] = mapped_column(nullable=False)
+    photo_name: Mapped[str] = mapped_column(nullable=True)
     category_id: Mapped[int] = mapped_column(
         ForeignKey("category.id", ondelete="CASCADE")
     )
