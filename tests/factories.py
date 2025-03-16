@@ -2,7 +2,8 @@ import factory
 from faker import Faker
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import Category, Product, Size, ProductSize
+from db.models import Category, Product, Size, ProductSize, User
+from services.auth import get_hash_password
 
 fake = Faker()
 
@@ -28,7 +29,6 @@ class CategoryFactory(AsyncSQLAlchemyModelFactory):
     class Meta:
         model = Category
 
-    id = factory.Sequence(lambda n: n + 1)
     name = factory.LazyAttribute(lambda _: fake.word())
 
 
@@ -38,7 +38,6 @@ class SizeFactory(AsyncSQLAlchemyModelFactory):
     class Meta:
         model = Size
 
-    id = factory.Sequence(lambda n: n + 1)
     name = factory.LazyAttribute(lambda _: fake.word())
 
 
@@ -48,7 +47,6 @@ class ProductFactory(AsyncSQLAlchemyModelFactory):
     class Meta:
         model = Product
 
-    id = factory.Sequence(lambda n: n + 1)
     name = factory.LazyAttribute(lambda _: fake.word())
     description = factory.LazyAttribute(lambda _: fake.text())
     photo_name = factory.LazyAttribute(lambda _: fake.file_name(extension="jpg"))
@@ -62,8 +60,30 @@ class ProductSizeFactory(AsyncSQLAlchemyModelFactory):
     class Meta:
         model = ProductSize
 
-    id = factory.Sequence(lambda n: n + 1)
     product_id = factory.SubFactory(ProductFactory)
     size_id = factory.SubFactory(SizeFactory)
     price = factory.LazyAttribute(lambda _: Decimal(fake.random_number(digits=2)))
     discount = factory.LazyAttribute(lambda _: fake.random_int(min=0, max=100))
+
+
+class WebUserFactory(AsyncSQLAlchemyModelFactory):
+    """Фабрика для пользователей, зарегистрированных через апи."""
+
+    class Meta:
+        model = User
+
+    email = factory.Faker("email")
+    hashed_password = factory.LazyFunction(lambda: get_hash_password("testpassword"))
+    is_admin = False
+
+
+class TgUserFactory(AsyncSQLAlchemyModelFactory):
+    """Фабрика для пользователей, зарегистрированных через бота"""
+
+    class Meta:
+        model = User
+
+    tg_id = factory.Faker("uuid4")
+    email = factory.Faker("email")
+    hashed_password = ""
+    is_admin = False

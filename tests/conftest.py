@@ -9,6 +9,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from main import app
 from db.models import Base
 from db.connect import get_session
+from utils.redis_connect import get_redis
 from config import settings
 
 
@@ -67,13 +68,25 @@ async def test_cache_manager():
     await redis.aclose()
 
 
+@pytest_asyncio.fixture
+async def test_redis():
+    """Фикстура для тестового редиса"""
+    redis = Redis(
+        host=settings.TEST_REDIS_HOST,
+        port=settings.TEST_REDIS_PORT,
+        decode_responses=True,
+    )
+    await redis.flushdb()
+    yield redis
+    await redis.flushdb()
+    await redis.aclose()
 
 
 @pytest_asyncio.fixture
-async def client(test_session):
+async def client(test_session, test_redis):
     """Подмена зависимостей и тестовый клиент"""
-
     app.dependency_overrides[get_session] = lambda: test_session
+    app.dependency_overrides[get_redis] = lambda: test_redis
 
     async with AsyncClient(
         transport=ASGITransport(app),
