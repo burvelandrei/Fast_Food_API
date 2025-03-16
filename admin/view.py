@@ -1,5 +1,6 @@
 from sqladmin import ModelView
 from wtforms import FileField
+from starlette.datastructures import UploadFile
 from db.models import (
     User,
     Category,
@@ -99,7 +100,7 @@ class ProductAdmin(ModelView, model=Product):
     async def on_model_change(self, data, model, is_created, request):
         file = data.get("photo_name")
         file_folder = model.__class__.__name__.lower() + "s"
-        if file:
+        if file and isinstance(file, UploadFile):
             uploaded_photo_name = await upload_to_s3(
                 file_folder=file_folder,
                 file=file,
@@ -108,11 +109,14 @@ class ProductAdmin(ModelView, model=Product):
             )
             model.photo_name = uploaded_photo_name
             data["photo_name"] = uploaded_photo_name
+        elif file and isinstance(file, str):
+            model.photo_name = file
+            data["photo_name"] = file
 
     async def on_model_delete(self, model, request):
         if model.photo_name:
             await delete_from_s3(
-                file_folder = model.__class__.__name__.lower() + "s",
+                file_folder=model.__class__.__name__.lower() + "s",
                 file_name=model.photo_name,
             )
 
@@ -223,7 +227,7 @@ def setup_admin(app):
         engine,
         authentication_backend=admin_auth,
         templates_dir="admin/templates",
-        debug=True
+        debug=True,
     )
     admin.add_view(UserAdmin)
     admin.add_view(CategoryAdmin)
