@@ -107,17 +107,42 @@ async def auth_headers_tg(test_session: AsyncSession):
 
 
 @pytest_asyncio.fixture
-async def cart_with_items(
+async def empty_cart(
     test_redis,
     auth_headers_web,
     products_with_sizes,
 ):
     """
-    Фикстура, создающая пустую корзину с элементами для пользователя.
+    Фикстура, создающая пустую корзину для пользователя.
     """
     headers, user = auth_headers_web
     products, sizes, _ = products_with_sizes
     items = []
+
+    yield user.id, f"cart:{user.id}", items, headers, products, sizes
+
+    await CartFactory.clear_cart(test_redis=test_redis, user_id=user.id)
+
+
+@pytest_asyncio.fixture
+async def cart_with_items(test_redis, auth_headers_web, products_with_sizes):
+    """
+    Фикстура, создающая корзину с элементами для пользователя.
+    """
+    headers, user = auth_headers_web
+    products, sizes, _ = products_with_sizes
+    items = []
+
+    for product in products[:2]:
+        for size in sizes[:2]:
+            await CartFactory.create_cart_item(
+                test_redis=test_redis,
+                user_id=user.id,
+                product_id=product.id,
+                size_id=size.id,
+                quantity=5,
+            )
+            items.append((product.id, size.id))
 
     yield user.id, f"cart:{user.id}", items, headers, products, sizes
 

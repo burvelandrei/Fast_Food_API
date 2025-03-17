@@ -2,17 +2,21 @@ import pytest
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from db.operations import ProductDO
-from tests.fixtures import cart_with_items, auth_headers_web, products_with_sizes
-from tests.factories import CartFactory
+from tests.fixtures import (
+    cart_with_items,
+    auth_headers_web,
+    products_with_sizes,
+    empty_cart,
+)
 
 
 @pytest.mark.asyncio
 async def test_add_item_to_cart_new_item(
     client,
     test_redis,
-    cart_with_items,
+    empty_cart,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    user_id, cart_key, items, headers, products, sizes = empty_cart
     product = products[0]
     size = sizes[0]
 
@@ -37,9 +41,9 @@ async def test_add_item_to_cart_new_item(
 async def test_add_item_to_cart_existing_item(
     client,
     test_redis,
-    cart_with_items,
+    empty_cart,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    user_id, cart_key, items, headers, products, sizes = empty_cart
     product = products[0]
     size = sizes[0]
 
@@ -73,14 +77,6 @@ async def test_update_cart_item_quantity(
     product = products[0]
     size = sizes[0]
 
-    await CartFactory.create_cart_item(
-        test_redis=test_redis,
-        user_id=user_id,
-        product_id=product.id,
-        size_id=size.id,
-        quantity=4,
-    )
-
     update_data = {"quantity": 5}
     response = await client.patch(
         f"/carts/update/{product.id}/{size.id}/",
@@ -106,17 +102,6 @@ async def test_get_cart_user(
     cart_with_items,
 ):
     user_id, cart_key, items, headers, products, sizes = cart_with_items
-
-    for product in products[:2]:
-        for size in sizes[:2]:
-            await CartFactory.create_cart_item(
-                test_redis=test_redis,
-                user_id=user_id,
-                product_id=product.id,
-                size_id=size.id,
-                quantity=5,
-            )
-            items.append((product.id, size.id))
 
     response = await client.get("/carts/", headers=headers)
     assert response.status_code == 200
@@ -158,14 +143,6 @@ async def test_get_cart_item_user(
     product = products[0]
     size = sizes[0]
 
-    await CartFactory.create_cart_item(
-        test_redis=test_redis,
-        user_id=user_id,
-        product_id=product.id,
-        size_id=size.id,
-        quantity=4,
-    )
-
     response = await client.get(
         f"/carts/{product.id}/{size.id}/",
         headers=headers,
@@ -175,7 +152,7 @@ async def test_get_cart_item_user(
     item_data = response.json()
     assert item_data["product"]["id"] == product.id
     assert item_data["product"]["size_id"] == size.id
-    assert item_data["quantity"] == 4
+    assert item_data["quantity"] == 5
 
     product_size = await ProductDO.get_for_id_by_size_id(
         product_id=product.id,
@@ -201,14 +178,6 @@ async def test_delete_item_from_cart(
     product = products[0]
     size = sizes[0]
 
-    await CartFactory.create_cart_item(
-        test_redis=test_redis,
-        user_id=user_id,
-        product_id=product.id,
-        size_id=size.id,
-        quantity=1,
-    )
-
     response = await client.delete(
         f"/carts/delete/{product.id}/{size.id}/",
         headers=headers,
@@ -222,10 +191,16 @@ async def test_delete_item_from_cart(
 
 
 @pytest.mark.asyncio
-async def test_delete_item_not_in_cart(client, cart_with_items):
+async def test_delete_item_not_in_cart(
+    client,
+    test_redis,
+    cart_with_items,
+):
     user_id, cart_key, items, headers, products, sizes = cart_with_items
     product = products[0]
     size = sizes[0]
+
+    await test_redis.hdel(cart_key, f"{product.id}:{size.id}")
 
     response = await client.delete(
         f"/carts/delete/{product.id}/{size.id}/",
@@ -243,16 +218,6 @@ async def test_delete_cart(
 ):
     user_id, cart_key, items, headers, products, sizes = cart_with_items
 
-    for product in products[:2]:
-        for size in sizes[:2]:
-            await CartFactory.create_cart_item(
-                test_redis=test_redis,
-                user_id=user_id,
-                product_id=product.id,
-                size_id=size.id,
-                quantity=1,
-            )
-
     response = await client.delete(
         "/carts/",
         headers=headers,
@@ -265,8 +230,14 @@ async def test_delete_cart(
 
 
 @pytest.mark.asyncio
-async def test_delete_cart_empty(client, cart_with_items):
+async def test_delete_cart_empty(
+    client,
+    test_redis,
+    cart_with_items,
+):
     user_id, cart_key, items, headers, products, sizes = cart_with_items
+
+    await test_redis.delete(cart_key)
 
     response = await client.delete(
         "/carts/",
