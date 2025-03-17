@@ -81,13 +81,6 @@ jobs:
           uvicorn main:app --host 0.0.0.0 --port 8000 &
           echo "FastAPI запущен на http://localhost:8000"
 
-      - name: Ожидание готовности FastAPI
-        run: |
-          until curl -f http://localhost:8000/; do
-            echo "Ожидание запуска FastAPI..."
-            sleep 5
-          done
-
       - name: Запуск тестов с pytest
         run: pytest -c pytest.ini -v
 
