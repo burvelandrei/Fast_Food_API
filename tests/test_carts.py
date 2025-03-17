@@ -114,7 +114,11 @@ async def test_get_cart_user(
     for item in cart_data["cart_items"]:
         assert item["product"]["id"] in [product.id for product in products]
         assert item["product"]["size_id"] in [size.id for size in sizes]
-        assert item["quantity"] == 5
+        # assert item["quantity"] == 5
+        for p_id, s_id, qty in items:
+            if p_id == item["product"]["id"] and s_id == item["product"]["size_id"]:
+                assert item["quantity"] == qty  # Проверяем количество
+                break
 
         product_size = await ProductDO.get_for_id_by_size_id(
             product_id=item["product"]["id"],
@@ -149,10 +153,14 @@ async def test_get_cart_item_user(
     )
     assert response.status_code == 200
 
+    for p_id, s_id, qty in items:
+        if p_id == product.id and s_id == size.id:
+            expected_quantity = qty
+            break
     item_data = response.json()
     assert item_data["product"]["id"] == product.id
     assert item_data["product"]["size_id"] == size.id
-    assert item_data["quantity"] == 5
+    assert item_data["quantity"] == qty
 
     product_size = await ProductDO.get_for_id_by_size_id(
         product_id=product.id,

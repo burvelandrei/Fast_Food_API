@@ -1,4 +1,5 @@
 import pytest_asyncio
+import random
 from sqlalchemy.ext.asyncio import AsyncSession
 from factories import (
     CategoryFactory,
@@ -135,14 +136,15 @@ async def cart_with_items(test_redis, auth_headers_web, products_with_sizes):
 
     for product in products[:2]:
         for size in sizes[:2]:
+            quantity = random.randint(1, 10)
             await CartFactory.create_cart_item(
                 test_redis=test_redis,
                 user_id=user.id,
                 product_id=product.id,
                 size_id=size.id,
-                quantity=5,
+                quantity=quantity,
             )
-            items.append((product.id, size.id))
+            items.append((product.id, size.id, quantity))
 
     yield user.id, f"cart:{user.id}", items, headers, products, sizes
 
