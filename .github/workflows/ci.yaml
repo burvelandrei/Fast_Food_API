@@ -48,9 +48,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Проверка доступности базы данных
+      - name: Проверка доступности PostgreSQL
         run: |
-          PGPASSWORD=test_password psql -h postgres -U test_user -d test_name -c "\dt"
+          sleep 10  # Даем немного времени на запуск
+          PGPASSWORD=test_password pg_isready -h postgres -U test_user -d test_name
       - name: Запуск тестов с pytest
         env:
           SERVER_HOST: "app"
