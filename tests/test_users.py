@@ -1,16 +1,16 @@
 import pytest
-import jwt
-from unittest.mock import AsyncMock
-from unittest.mock import patch
 from config import settings
 from db.operations import UserDO
 from services.auth import (
     create_email_confirmation_token,
-    get_hash_password,
-    create_access_token,
     create_refresh_token,
 )
-from fixtures import web_user, tg_user, auth_headers_web, auth_headers_tg
+from fixtures import (
+    web_user, # noqa: F401
+    tg_user, # noqa: F401
+    auth_headers_web, # noqa: F401
+    auth_headers_tg, # noqa: F401
+)
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,10 @@ async def test_register_web_user(
     response = await client.post("/users/register/", json=user_data)
 
     assert response.status_code == 200
-    assert "Check your email to confirm registration." in response.json()["message"]
+    assert (
+        "Check your email to confirm registration."
+        in response.json()["message"]
+    )
 
     keys = await test_redis.keys("confirm:*")
     assert len(keys) > 0
@@ -44,7 +47,10 @@ async def test_register_tg_user(
     response = await client.post("/users/register/", json=user_data)
 
     assert response.status_code == 200
-    assert "Check your email to confirm registration." in response.json()["message"]
+    assert (
+        "Check your email to confirm registration."
+        in response.json()["message"]
+    )
 
     keys = await test_redis.keys("confirm:*")
     assert len(keys) > 0
@@ -70,7 +76,10 @@ async def test_register_tg_after_web(
     token = keys[0].split(":")[1]
     await client.get(f"/users/confirm-email/{token}/")
 
-    user = await UserDO.get_by_email(email=web_user.email, session=test_session)
+    user = await UserDO.get_by_email(
+        email=web_user.email,
+        session=test_session,
+    )
     assert user is not None
     assert user.hashed_password == web_user.hashed_password
     assert user.tg_id == "tg12345"
@@ -96,7 +105,10 @@ async def test_register_web_after_tg(
     token = keys[0].split(":")[1]
     await client.get(f"/users/confirm-email/{token}/")
 
-    user = await UserDO.get_by_email(email=tg_user.email, session=test_session)
+    user = await UserDO.get_by_email(
+        email=tg_user.email,
+        session=test_session,
+    )
     assert user is not None
     assert user.tg_id == tg_user.tg_id
     assert user.hashed_password is not None
@@ -114,7 +126,10 @@ async def test_confirm_email_web(
 
     await test_redis.hset(
         f"confirm:{token}",
-        mapping={"email": web_user.email, "hashed_password": web_user.hashed_password},
+        mapping={
+            "email": web_user.email,
+            "hashed_password": web_user.hashed_password,
+        },
     )
 
     response = await client.get(f"/users/confirm-email/{token}/")
@@ -122,7 +137,10 @@ async def test_confirm_email_web(
     assert response.status_code == 200
     assert "Email successfully confirmed!" in response.json()["message"]
 
-    user = await UserDO.get_by_email(email=web_user.email, session=test_session)
+    user = await UserDO.get_by_email(
+        email=web_user.email,
+        session=test_session,
+    )
     assert user is not None
     assert user.hashed_password == web_user.hashed_password
 
@@ -137,7 +155,11 @@ async def test_confirm_email_tg(
     token = create_email_confirmation_token(tg_user.email)
 
     await test_redis.hset(
-        f"confirm:{token}", mapping={"email": tg_user.email, "tg_id": tg_user.tg_id}
+        f"confirm:{token}",
+        mapping={
+            "email": tg_user.email,
+            "tg_id": tg_user.tg_id,
+        }
     )
 
     response = await client.get(f"/users/confirm-email/{token}/")
@@ -145,7 +167,10 @@ async def test_confirm_email_tg(
     assert response.status_code == 200
     assert "Email successfully confirmed!" in response.json()["message"]
 
-    user = await UserDO.get_by_email(email=tg_user.email, session=test_session)
+    user = await UserDO.get_by_email(
+        email=tg_user.email,
+        session=test_session,
+    )
     assert user is not None
     assert user.tg_id == tg_user.tg_id
 
@@ -153,7 +178,10 @@ async def test_confirm_email_tg(
 @pytest.mark.asyncio
 async def test_login_user(client, web_user):
     response = await client.post(
-        "/users/login/", json={"email": web_user.email, "password": "testpassword"}
+        "/users/login/", json={
+            "email": web_user.email,
+            "password": "testpassword",
+        }
     )
 
     assert response.status_code == 200
@@ -166,7 +194,10 @@ async def test_login_user(client, web_user):
 @pytest.mark.asyncio
 async def test_login_user_invalid_password(client, web_user):
     response = await client.post(
-        "/users/login/", json={"email": web_user.email, "password": "wrongpassword"}
+        "/users/login/", json={
+            "email": web_user.email,
+            "password": "wrongpassword",
+        }
     )
 
     assert response.status_code == 401
@@ -175,7 +206,7 @@ async def test_login_user_invalid_password(client, web_user):
 
 @pytest.mark.asyncio
 async def test_logout_user(client, auth_headers_web):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
     response = await client.post("/users/logout/", headers=headers)
 
     assert response.status_code == 200

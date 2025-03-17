@@ -1,5 +1,4 @@
 import boto3
-from sqlalchemy import select
 from fastapi import UploadFile, HTTPException
 from botocore.exceptions import ClientError
 from botocore.config import Config
@@ -55,8 +54,10 @@ async def upload_to_s3(
     is_created: bool,
 ) -> str:
     """
-    Загружает файл в S3, если файл для этого продукта существукт - удаляем его,
-    если файл с таким именем уже есть у другого продукта - выбрасывем исключение
+    Загружает файл в S3,
+    если файл для этого продукта существует - удаляем его,
+    если файл с таким именем уже есть
+    у другого продукта - выбрасывем исключение
     """
     new_file_name = file.filename
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_file_name}"
@@ -70,7 +71,8 @@ async def upload_to_s3(
         if existing_product and existing_product.id != model.id:
             raise HTTPException(
                 status_code=400,
-                detail="The file with this name already exists for another product!",
+                detail=f"The file with this name already exists for "
+                    f"another product!"
             )
     old_file_name = None if is_created else model.photo_name
     if old_file_name and old_file_name != new_file_name:

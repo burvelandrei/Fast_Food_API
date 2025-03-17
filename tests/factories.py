@@ -75,9 +75,13 @@ class ProductFactory(AsyncSQLAlchemyModelFactory):
 
     name = factory.LazyAttribute(lambda _: fake.word())
     description = factory.LazyAttribute(lambda _: fake.text())
-    photo_name = factory.LazyAttribute(lambda _: fake.file_name(extension="jpg"))
+    photo_name = factory.LazyAttribute(
+        lambda _: fake.file_name(extension="jpg")
+    )
     category = None
-    category_id = factory.LazyAttribute(lambda o: o.category.id if o.category else None)
+    category_id = factory.LazyAttribute(
+        lambda o: o.category.id if o.category else None
+    )
 
 
 class ProductSizeFactory(AsyncSQLAlchemyModelFactory):
@@ -88,8 +92,12 @@ class ProductSizeFactory(AsyncSQLAlchemyModelFactory):
 
     product_id = factory.SubFactory(ProductFactory)
     size_id = factory.SubFactory(SizeFactory)
-    price = factory.LazyAttribute(lambda _: Decimal(fake.random_number(digits=2)))
-    discount = factory.LazyAttribute(lambda _: fake.random_int(min=0, max=100))
+    price = factory.LazyAttribute(
+        lambda _: Decimal(fake.random_number(digits=2))
+    )
+    discount = factory.LazyAttribute(
+        lambda _: fake.random_int(min=0, max=100)
+    )
 
 
 class WebUserFactory(AsyncSQLAlchemyModelFactory):
@@ -99,7 +107,9 @@ class WebUserFactory(AsyncSQLAlchemyModelFactory):
         model = User
 
     email = factory.Faker("email")
-    hashed_password = factory.LazyFunction(lambda: get_hash_password("testpassword"))
+    hashed_password = factory.LazyFunction(
+        lambda: get_hash_password("testpassword")
+    )
     is_admin = False
 
 
@@ -134,7 +144,11 @@ class CartFactory:
         )
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{product_id}:{size_id}"
-        await test_redis.hset(cart_key, cart_item_id, json.dumps(cart_item.dict()))
+        await test_redis.hset(
+            cart_key,
+            cart_item_id,
+            json.dumps(cart_item.dict()),
+        )
         return cart_key, cart_item_id
 
     @staticmethod
@@ -173,7 +187,9 @@ class OrderItemFactory(AsyncSQLAlchemyModelFactoryFlush):
     name = factory.LazyFunction(lambda: fake.word())
     size_name = factory.LazyFunction(lambda: fake.word())
     quantity = factory.LazyFunction(lambda: fake.random_int(min=1, max=10))
-    total_price = factory.LazyAttribute(lambda _: Decimal(fake.random_number(digits=2)))
+    total_price = factory.LazyAttribute(
+        lambda _: Decimal(fake.random_number(digits=2))
+    )
 
 
 class DeliveryFactory(AsyncSQLAlchemyModelFactoryFlush):

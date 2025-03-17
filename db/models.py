@@ -14,12 +14,30 @@ from schemas.order import OrderStatus, DeliveryType
 
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
-        default=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
+        default=func.date_trunc(
+            "second",
+            func.timezone(
+                "Europe/Moscow",
+                func.now(),
+            ),
+        ),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        default=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
-        onupdate=func.date_trunc("second", func.timezone("Europe/Moscow", func.now())),
+        default=func.date_trunc(
+            "second",
+            func.timezone(
+                "Europe/Moscow",
+                func.now(),
+            ),
+        ),
+        onupdate=func.date_trunc(
+            "second",
+            func.timezone(
+                "Europe/Moscow",
+                func.now(),
+            ),
+        ),
         nullable=False,
     )
 
@@ -100,12 +118,23 @@ class ProductSize(Base, TimestampMixin):
     product_id: Mapped[int] = mapped_column(
         ForeignKey("product.id", ondelete="CASCADE")
     )
-    size_id: Mapped[int] = mapped_column(ForeignKey("size.id", ondelete="CASCADE"))
+    size_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "size.id",
+            ondelete="CASCADE",
+        )
+    )
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
     discount: Mapped[int] = mapped_column(nullable=False, default=0)
 
-    product: Mapped["Product"] = relationship("Product", back_populates="product_sizes")
-    size: Mapped["Size"] = relationship("Size", back_populates="size_products")
+    product: Mapped["Product"] = relationship(
+        "Product",
+        back_populates="product_sizes",
+    )
+    size: Mapped["Size"] = relationship(
+        "Size",
+        back_populates="size_products",
+    )
 
     def __repr__(self):
         return f"{self.size.name} - {self.price} - {self.discount}"
@@ -115,9 +144,17 @@ class Order(Base, TimestampMixin):
     __tablename__ = "order"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "user.id",
+            ondelete="CASCADE",
+        )
+    )
     user_order_id: Mapped[int] = mapped_column(nullable=False)
-    total_amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
+    total_amount: Mapped[Decimal] = mapped_column(
+        DECIMAL(10, 2),
+        nullable=False,
+    )
     status: Mapped[str] = mapped_column(
         Enum(OrderStatus, name="orderstatus", create_type=True),
         default=OrderStatus.CREATED,
@@ -159,7 +196,10 @@ class OrderItem(Base):
     name: Mapped[str] = mapped_column(nullable=False)
     size_name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[int] = mapped_column(nullable=False)
-    total_price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2), nullable=False)
+    total_price: Mapped[Decimal] = mapped_column(
+        DECIMAL(10, 2),
+        nullable=False,
+    )
 
     order: Mapped["Order"] = relationship(back_populates="order_items")
 
@@ -171,7 +211,12 @@ class Delivery(Base):
     __tablename__ = "delivery"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    order_id: Mapped[int] = mapped_column(ForeignKey("order.id", ondelete="CASCADE"))
+    order_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "order.id",
+            ondelete="CASCADE",
+        )
+    )
     delivery_type: Mapped[str] = mapped_column(
         Enum(DeliveryType, name="deliverytype", create_type=True),
         default=DeliveryType.pickup,

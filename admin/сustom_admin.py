@@ -6,7 +6,11 @@ from starlette.datastructures import FormData, UploadFile
 
 
 class CustomAdmin(Admin):
-    async def _handle_form_data(self, request: Request, obj: Any = None) -> FormData:
+    async def _handle_form_data(
+        self,
+        request: Request,
+        obj: Any = None,
+    ) -> FormData:
         """
         Заменённый метод в Admin
         Если есть текущий файл, но при изменении поле загрузки остаётся

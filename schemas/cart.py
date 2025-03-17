@@ -35,7 +35,6 @@ class ProductCartOut(BaseModel):
         return None
 
 
-
 class CartItemOut(BaseModel):
     product: ProductCartOut
     quantity: int
@@ -50,7 +49,10 @@ class CartOut(BaseModel):
 
     @computed_field
     def total_amount(self) -> Decimal:
-        return sum(item.total_price for item in self.cart_items) or Decimal("0.00")
+        return (
+            sum(item.total_price for item in self.cart_items)
+            or Decimal("0.00")
+        )
 
 
 class CartItemCreate(BaseModel):

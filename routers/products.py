@@ -9,7 +9,8 @@ from utils.cache_manager import request_key_builder
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-# Роутер получения всех продуктов по категории (если category_id=None то выводит все продукты)
+# Роутер получения всех продуктов по категории
+# (если category_id=None то выводит все продукты)
 @router.get("/", response_model=list[ProductOut])
 @cache(expire=60, key_builder=request_key_builder)
 async def get_products(
@@ -32,7 +33,10 @@ async def get_product(
     product_id: int,
     session: AsyncSession = Depends(get_session),
 ):
-    product = await ProductDO.get_by_id(product_id=product_id, session=session)
+    product = await ProductDO.get_by_id(
+        product_id=product_id,
+        session=session,
+    )
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product

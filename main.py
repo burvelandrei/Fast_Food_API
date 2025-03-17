@@ -11,7 +11,6 @@ from utils.middlewares import (
     LogRequestsMiddleware,
 )
 from utils.cache_manager import lifespan
-from config import settings
 
 
 app = FastAPI(title="FastFood API", lifespan=lifespan)

@@ -23,7 +23,8 @@ from config import settings
 async def category(test_session: AsyncSession):
     """Создаёт тестовые категории."""
     categories = [
-        await CategoryFactory.create_async(session=test_session) for _ in range(3)
+        await CategoryFactory.create_async(session=test_session)
+        for _ in range(3)
     ]
     yield categories
 
@@ -32,10 +33,12 @@ async def category(test_session: AsyncSession):
 async def products_with_sizes(test_session: AsyncSession):
     """Создает два продукта с размерами"""
     categories = [
-        await CategoryFactory.create_async(session=test_session) for _ in range(2)
+        await CategoryFactory.create_async(session=test_session)
+        for _ in range(2)
     ]
     products = []
-    sizes = [await SizeFactory.create_async(session=test_session) for i in range(3)]
+    sizes = [await SizeFactory.create_async(session=test_session)
+             for i in range(3)]
     product_sizes = []
 
     for i in range(2):
@@ -133,7 +136,11 @@ async def empty_cart(
 
 
 @pytest_asyncio.fixture
-async def cart_with_items(test_redis, auth_headers_web, products_with_sizes):
+async def cart_with_items(
+    test_redis,
+    auth_headers_web,
+    products_with_sizes,
+    ):
     """
     Фикстура, создающая корзину с элементами для пользователя.
     """
@@ -195,7 +202,7 @@ async def order_with_items(
                     session=test_session,
                 )
                 order_items.append(order_item)
-        delivery = await DeliveryFactory.create_async(
+        await DeliveryFactory.create_async(
             session=test_session, order_id=order.id
         )
 

@@ -15,7 +15,8 @@ class CookieMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send):
         """
-        Читает cookies из запроса и добавляет функцию для установки cookies в ответ.
+        Читает cookies из запроса и добавляет функцию для
+        установки cookies в ответ.
         """
         if scope["type"] not in ("http", "websocket"):
             await self.app(scope, receive, send)
@@ -30,7 +31,10 @@ class CookieMiddleware:
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
                 if "_cookies_to_set" in scope:
-                    for cookie_name, cookie_value in scope["_cookies_to_set"].items():
+                    for (
+                        cookie_name,
+                        cookie_value,
+                    ) in scope["_cookies_to_set"].items():
                         headers.append("Set-Cookie", cookie_value)
                     del scope["_cookies_to_set"]
             await send(message)

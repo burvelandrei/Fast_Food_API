@@ -34,7 +34,8 @@ class CartDO:
     ):
         """Добавление продукта в корзину"""
         logger.info(
-            f"Adding product {product_id} size {size_id} to user_id {user_id} cart"
+            f"Adding product {product_id} size {size_id} to user_id "
+            f"{user_id} cart"
         )
         product_size = await ProductDO.get_for_id_by_size_id(
             product_id=product_id,
@@ -43,7 +44,10 @@ class CartDO:
         )
         if not product_size:
             logger.warning(f"Product {product_id} size {size_id} not found")
-            raise HTTPException(status_code=404, detail="Product not found in database")
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found in database",
+            )
 
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{product_id}:{size_id}"
@@ -74,7 +78,8 @@ class CartDO:
     ):
         """Обновление количества продукта в корзине"""
         logger.info(
-            f"Updating product {product_id} size {size_id} in user_id {user_id} cart"
+            f"Updating product {product_id} size {size_id} in user_id "
+            f"{user_id} cart"
         )
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{product_id}:{size_id}"
@@ -86,11 +91,19 @@ class CartDO:
         )
         if not product_size:
             logger.warning(f"Product {product_id} size {size_id} not found")
-            raise HTTPException(status_code=404, detail="Product not found in database")
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found in database",
+            )
 
         if not existing_item:
-            logger.warning(f"Product {product_id} size {size_id} not found in cart")
-            raise HTTPException(status_code=404, detail="Product not found in cart")
+            logger.warning(
+                f"Product {product_id} size {size_id} not found in cart"
+            )
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found in cart",
+            )
 
         existing_item = json.loads(existing_item)
         existing_item["quantity"] = quantity
@@ -125,7 +138,8 @@ class CartDO:
             )
             if not product_size:
                 logger.warning(
-                    f"Product {product_id} size {size_id} not found in DB, removing from cart"
+                    f"Product {product_id} size {size_id} not found in DB, "
+                    f"removing from cart"
                 )
                 await redis.hdel(cart_key, cart_item_id)
                 continue
@@ -159,15 +173,21 @@ class CartDO:
     ):
         """Получение одного товара из корзины"""
         logger.info(
-            f"Fetching product {product_id} size {size_id} from user {user_id} cart"
+            f"Fetching product {product_id} size {size_id} from user "
+            f"{user_id} cart"
         )
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{product_id}:{size_id}"
         item_data = await redis.hget(cart_key, cart_item_id)
 
         if not item_data:
-            logger.warning(f"Product {product_id} size {size_id} not found in cart")
-            raise HTTPException(status_code=404, detail="Product not found in cart")
+            logger.warning(
+                f"Product {product_id} size {size_id} not found in cart"
+            )
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found in cart",
+            )
 
         item = json.loads(item_data)
         product_size = await ProductDO.get_for_id_by_size_id(
@@ -194,19 +214,29 @@ class CartDO:
         )
 
     @staticmethod
-    async def remove_item(product_id: int, size_id: int, user_id: int, redis: Redis):
+    async def remove_item(
+        product_id: int,
+        size_id: int,
+        user_id: int,
+        redis: Redis,
+        ):
         """Удаление продукта из корзины"""
         logger.info(
-            f"Removing product {product_id} size {size_id} from user_id {user_id} cart"
+            f"Removing product {product_id} size {size_id} from user_id "
+            f"{user_id} cart"
         )
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{product_id}:{size_id}"
         removed = await redis.hdel(cart_key, cart_item_id)
         if not removed:
             logger.warning(
-                f"Product {product_id} size {size_id} not found in cart {cart_key}"
+                f"Product {product_id} size {size_id} not found in cart "
+                f"{cart_key}"
             )
-            raise HTTPException(status_code=404, detail="Product not found in cart")
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found in cart",
+            )
 
     @staticmethod
     async def remove_cart(user_id: int, redis: Redis):
@@ -227,7 +257,8 @@ class CartDO:
     ):
         """Повторяет продукты в корзину из заказа по id"""
         logger.info(
-            f"Adding product {cart_item.product_id} size {cart_item.size_id} to user_id {user_id} cart"
+            f"Adding product {cart_item.product_id} size "
+            f"{cart_item.size_id} to user_id {user_id} cart"
         )
         product_size = await ProductDO.get_for_id_by_size_id(
             product_id=cart_item.product_id,
@@ -236,13 +267,18 @@ class CartDO:
         )
         if not product_size:
             logger.warning(
-                f"Skipping product {cart_item.product_id} size {cart_item.size_id} - not found in database"
+                f"Skipping product {cart_item.product_id} size "
+                f"{cart_item.size_id} - not found in database"
             )
             return
 
         cart_key = f"cart:{user_id}"
         cart_item_id = f"{cart_item.product_id}:{cart_item.size_id}"
         cart_items = await redis.hlen(cart_key)
-        await redis.hset(cart_key, cart_item_id, json.dumps(cart_item.__dict__))
+        await redis.hset(
+            cart_key,
+            cart_item_id,
+            json.dumps(cart_item.__dict__),
+        )
         if not cart_items:
             await redis.expire(cart_key, 60 * 60)

@@ -3,10 +3,10 @@ import json
 from decimal import Decimal, ROUND_HALF_UP
 from db.operations import ProductDO
 from tests.fixtures import (
-    cart_with_items,
-    auth_headers_web,
-    products_with_sizes,
-    empty_cart,
+    cart_with_items, # noqa: F401
+    auth_headers_web, # noqa: F401
+    products_with_sizes, # noqa: F401
+    empty_cart, # noqa: F401
 )
 
 
@@ -16,7 +16,7 @@ async def test_add_item_to_cart_new_item(
     test_redis,
     empty_cart,
 ):
-    user_id, cart_key, items, headers, products, sizes = empty_cart
+    _, cart_key, _, headers, products, sizes = empty_cart
     product = products[0]
     size = sizes[0]
 
@@ -43,7 +43,7 @@ async def test_add_item_to_cart_existing_item(
     test_redis,
     empty_cart,
 ):
-    user_id, cart_key, items, headers, products, sizes = empty_cart
+    _, cart_key, _, headers, products, sizes = empty_cart
     product = products[0]
     size = sizes[0]
 
@@ -73,7 +73,7 @@ async def test_update_cart_item_quantity(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, products, sizes = cart_with_items
     product = products[0]
     size = sizes[0]
 
@@ -101,7 +101,7 @@ async def test_get_cart_user(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, _, items, headers, products, sizes = cart_with_items
 
     response = await client.get("/carts/", headers=headers)
     assert response.status_code == 200
@@ -116,8 +116,11 @@ async def test_get_cart_user(
         assert item["product"]["size_id"] in [size.id for size in sizes]
         # assert item["quantity"] == 5
         for p_id, s_id, qty in items:
-            if p_id == item["product"]["id"] and s_id == item["product"]["size_id"]:
-                assert item["quantity"] == qty  # Проверяем количество
+            if (
+                p_id == item["product"]["id"]
+                and s_id == item["product"]["size_id"]
+            ):
+                assert item["quantity"] == qty
                 break
 
         product_size = await ProductDO.get_for_id_by_size_id(
@@ -125,11 +128,16 @@ async def test_get_cart_user(
             size_id=item["product"]["size_id"],
             session=test_session,
         )
-        expected_price = product_size.price * (1 - Decimal(product_size.discount) / 100)
+        expected_price = (
+            product_size.price * (1 - Decimal(product_size.discount) / 100)
+        )
         expected_price = expected_price.quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
-        assert Decimal(item["total_price"]) == expected_price * item["quantity"]
+        assert (
+                Decimal(item["total_price"])
+                == expected_price * item["quantity"]
+        )
 
         total_amount += Decimal(item["total_price"])
 
@@ -143,7 +151,7 @@ async def test_get_cart_item_user(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, _, items, headers, products, sizes = cart_with_items
     product = products[0]
     size = sizes[0]
 
@@ -160,7 +168,7 @@ async def test_get_cart_item_user(
     item_data = response.json()
     assert item_data["product"]["id"] == product.id
     assert item_data["product"]["size_id"] == size.id
-    assert item_data["quantity"] == qty
+    assert item_data["quantity"] == expected_quantity
 
     product_size = await ProductDO.get_for_id_by_size_id(
         product_id=product.id,
@@ -171,9 +179,14 @@ async def test_get_cart_item_user(
 
     discount_decimal = Decimal(product_size.discount) / Decimal(100)
     expected_price = product_size.price * (1 - discount_decimal)
-    expected_price = expected_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    expected_price = (
+        expected_price.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    )
 
-    assert Decimal(item_data["total_price"]) == expected_price * item_data["quantity"]
+    assert (
+    Decimal(item_data["total_price"])
+    == expected_price * item_data["quantity"]
+    )
 
 
 @pytest.mark.asyncio
@@ -182,7 +195,7 @@ async def test_delete_item_from_cart(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, products, sizes = cart_with_items
     product = products[0]
     size = sizes[0]
 
@@ -204,7 +217,7 @@ async def test_delete_item_not_in_cart(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, products, sizes = cart_with_items
     product = products[0]
     size = sizes[0]
 
@@ -224,7 +237,7 @@ async def test_delete_cart(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, _, _ = cart_with_items
 
     response = await client.delete(
         "/carts/",
@@ -243,7 +256,7 @@ async def test_delete_cart_empty(
     test_redis,
     cart_with_items,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, _, _ = cart_with_items
 
     await test_redis.delete(cart_key)
 

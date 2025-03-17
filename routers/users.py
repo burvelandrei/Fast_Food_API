@@ -36,7 +36,10 @@ async def register(
     redis: Redis = Depends(get_redis),
 ):
     confirmation_token = create_email_confirmation_token(user_data.email)
-    db_user = await UserDO.get_by_email(email=user_data.email, session=session)
+    db_user = await UserDO.get_by_email(
+        email=user_data.email,
+        session=session,
+    )
 
     if db_user:
         update_fields = {}
@@ -45,7 +48,9 @@ async def register(
             and db_user.tg_id
             and not db_user.hashed_password
         ):
-            update_fields["hashed_password"] = get_hash_password(user_data.password)
+            update_fields["hashed_password"] = (
+                get_hash_password(user_data.password)
+            )
         elif (
             isinstance(user_data, UserDataTg)
             and db_user.hashed_password
@@ -55,23 +60,36 @@ async def register(
 
         if update_fields:
             update_fields["email"] = user_data.email
-            await redis.hset(f"confirm:{confirmation_token}", mapping=update_fields)
+            await redis.hset(
+                f"confirm:{confirmation_token}",
+                mapping=update_fields
+            )
             await redis.expire(f"confirm:{confirmation_token}", 30*60)
         else:
-            raise HTTPException(status_code=400, detail="User already registered")
+            raise HTTPException(
+                status_code=400,
+                detail="User already registered"
+            )
     else:
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
             await redis.hset(
                 f"confirm:{confirmation_token}",
-                mapping={"email": user_data.email, "hashed_password": hashed_password},
+                mapping={
+                    "email": user_data.email,
+                    "hashed_password": hashed_password,
+                },
             )
         elif isinstance(user_data, UserDataTg):
             await redis.hset(
                 f"confirm:{confirmation_token}", mapping=user_data.__dict__
             )
         await redis.expire(f"confirm:{confirmation_token}", 30*60)
-    background_tasks.add_task(send_confirmation_email, user_data.email, confirmation_token)
+    background_tasks.add_task(
+        send_confirmation_email,
+        user_data.email,
+        confirmation_token,
+    )
     return JSONResponse(
         content={"message": "Check your email to confirm registration."},
         status_code=200,
@@ -89,12 +107,21 @@ async def confirmation_email(
     user_data = await redis.hgetall(f"confirm:{token}")
 
     if not email or not user_data:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired token",
+        )
 
-    db_user = await UserDO.get_by_email(email=user_data["email"], session=session)
+    db_user = await UserDO.get_by_email(
+        email=user_data["email"],
+        session=session,
+    )
 
     if db_user and db_user.hashed_password and db_user.tg_id:
-        raise HTTPException(status_code=400, detail="Email already confirmed")
+        raise HTTPException(
+            status_code=400,
+            detail="Email already confirmed",
+        )
 
     if not db_user:
         await UserDO.add(session=session, **user_data)
@@ -107,7 +134,9 @@ async def confirmation_email(
             )
         if "tg_id" in user_data:
             await UserDO.update(
-                session=session, id=db_user.id, **{"tg_id": user_data["tg_id"]}
+                session=session,
+                id=db_user.id,
+                **{"tg_id": user_data["tg_id"]},
             )
 
     await redis.delete(f"confirm:{token}")
@@ -150,7 +179,11 @@ async def login_user(
     user_web: UserDataWeb,
     session: AsyncSession = Depends(get_session),
 ):
-    user = await authentificate_user(user_web.email, user_web.password, session)
+    user = await authentificate_user(
+        user_web.email,
+        user_web.password,
+        session,
+        )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -164,7 +197,9 @@ async def login_user(
         data={"email": user.email}, secret_key=settings.SECRET_KEY
     )
     return Token(
-        access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
     )
 
 
@@ -194,7 +229,8 @@ async def refresh_access_token(
     session: AsyncSession = Depends(get_session),
 ):
     invalid_refresh_token_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid refresh token",
     )
 
     try:
@@ -208,7 +244,8 @@ async def refresh_access_token(
             raise invalid_refresh_token_exception
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token has expired"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has expired",
         )
     except jwt.PyJWTError:
         raise invalid_refresh_token_exception

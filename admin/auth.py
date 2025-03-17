@@ -3,7 +3,11 @@ from fastapi import Request
 from db.operations import UserDO
 from sqladmin.authentication import AuthenticationBackend
 from db.connect import AsyncSessionLocal
-from services.auth import verify_password, create_access_token, create_refresh_token
+from services.auth import (
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+)
 from admin.middllwares import CookieMiddleware
 from starlette.middleware import Middleware
 from config import settings
@@ -93,10 +97,21 @@ class JWTAuthBackend(AuthenticationBackend):
                         return False
 
                     async with AsyncSessionLocal() as session:
-                        user = await UserDO.get_by_email(email=email, session=session)
+                        user = await UserDO.get_by_email(
+                            email=email,
+                            session=session,
+                        )
                         if not user or not user.is_admin:
-                            request.scope["set_cookie"]("access_token", "", max_age=0)
-                            request.scope["set_cookie"]("refresh_token", "", max_age=0)
+                            request.scope["set_cookie"](
+                                "access_token",
+                                "",
+                                max_age=0,
+                            )
+                            request.scope["set_cookie"](
+                                "refresh_token",
+                                "",
+                                max_age=0,
+                            )
                             return False
                     new_access_token = create_access_token(
                         data={"email": payload["email"]},

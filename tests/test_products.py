@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from tests.fixtures import products_with_sizes
+from tests.fixtures import products_with_sizes # noqa: F401
 
 
 def normalize_product(product):
@@ -21,8 +21,12 @@ def normalize_product(product):
                 "price": Decimal(product_size["price"]),
                 "discount": product_size["discount"],
                 "final_price": Decimal(product_size["final_price"]),
-                "created_at": datetime.fromisoformat(product_size["created_at"]),
-                "updated_at": datetime.fromisoformat(product_size["updated_at"]),
+                "created_at": (
+                    datetime.fromisoformat(product_size["created_at"])
+                ),
+                "updated_at": (
+                    datetime.fromisoformat(product_size["updated_at"])
+                ),
                 "size": {
                     "id": product_size["size"]["id"],
                     "name": product_size["size"]["name"],
@@ -72,11 +76,15 @@ async def test_get_all_products(
             price = Decimal(product_size_data["price"])
             discount = Decimal(product_size_data["discount"])
             discount_decimal = discount / Decimal(100)
-            expected_final_price = (price - (price * discount_decimal)).quantize(
-                Decimal("0.01"), rounding=ROUND_HALF_UP
+            expected_final_price = (
+                (price - (price * discount_decimal))
+                .quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             )
 
-            assert Decimal(product_size_data["final_price"]) == expected_final_price
+            assert (
+                Decimal(product_size_data["final_price"])
+                == expected_final_price
+            )
     fetch_from_db_mock = mocker.patch(
         "db.operations.ProductDO.get_all", return_value=[]
     )
@@ -85,7 +93,9 @@ async def test_get_all_products(
     assert response2.status_code == 200
 
     normalized_data = [normalize_product(product) for product in data]
-    normalized_response2 = [normalize_product(product) for product in response2.json()]
+    normalized_response2 = [
+        normalize_product(product) for product in response2.json()
+    ]
 
     assert normalized_response2 == normalized_data
 
@@ -102,7 +112,7 @@ async def test_get_products_by_category(
     """
     Тест получения продуктов по категории
     """
-    products, sizes, product_sizes = products_with_sizes
+    products, _, _ = products_with_sizes
 
     category_id = products[0].category_id
 
@@ -122,7 +132,9 @@ async def test_get_products_by_category(
     response2 = await client.get(f"/products/?category_id={category_id}")
     assert response2.status_code == 200
     normalized_data = [normalize_product(product) for product in data]
-    normalized_response2 = [normalize_product(product) for product in response2.json()]
+    normalized_response2 = [
+        normalize_product(product) for product in response2.json()
+    ]
     assert normalized_response2 == normalized_data
 
     fetch_from_db_mock.assert_not_called()
@@ -138,7 +150,7 @@ async def test_get_product_by_id(
     """
     Тест получения продукта по id
     """
-    products, sizes, product_sizes = products_with_sizes
+    products, _, _ = products_with_sizes
 
     product = products[0]
 

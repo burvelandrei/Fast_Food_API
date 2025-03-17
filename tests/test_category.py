@@ -1,6 +1,5 @@
 import pytest
-from db.operations import CategoryDO
-from tests.fixtures import category
+from tests.fixtures import category # noqa: F401
 
 
 @pytest.mark.asyncio

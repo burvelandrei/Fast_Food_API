@@ -51,7 +51,8 @@ async def confirmation_order(
     )
 
 
-# Роутер получения всех заказов пользователя (если указан status только заказы по статусу)
+# Роутер получения всех заказов пользователя
+# (если указан status только заказы по статусу)
 @router.get("/", response_model=list[OrderOut])
 @cache(expire=30, key_builder=request_key_builder)
 async def get_all_orders(
@@ -93,7 +94,9 @@ async def get_current_orders(
     session: AsyncSession = Depends(get_session),
 ):
     statuses = [
-        status.value for status in OrderStatus if status != OrderStatus.COMPLETED
+        status.value
+        for status in OrderStatus
+        if status != OrderStatus.COMPLETED
     ]
     orders = await OrderDO.get_all_by_statuses(
         user_id=user.id,
@@ -157,6 +160,8 @@ async def repeat_order_to_cart(
         )
 
     return JSONResponse(
-        content={"message": "Products from the order have been added to the cart"},
+        content={
+            "message": "Products from the order have been added to the cart"
+        },
         status_code=200,
     )

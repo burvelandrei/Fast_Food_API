@@ -36,7 +36,8 @@ class BaseDO:
             return result.scalars().all()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching all records for {cls.model.__name__}: {e}",
+                f"An error occurred while fetching all records for "
+                f"{cls.model.__name__}: {e}",
             )
             raise e
 
@@ -50,7 +51,8 @@ class BaseDO:
             return result.scalar_one_or_none()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching {cls.model.__name__} with id {id}: {e}",
+                f"An error occurred while fetching "
+                f"{cls.model.__name__} with id {id}: {e}",
             )
             raise e
 
@@ -156,7 +158,8 @@ class ProductDO(BaseDO):
         try:
             logger.info(f"Fetching all products")
             query = select(cls.model).options(
-                selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                selectinload(cls.model.product_sizes)
+                .selectinload(ProductSize.size)
             )
             result = await session.execute(query)
             return result.scalars().all()
@@ -167,7 +170,11 @@ class ProductDO(BaseDO):
             raise e
 
     @classmethod
-    async def get_all_by_category_id(cls, category_id: int, session: AsyncSession):
+    async def get_all_by_category_id(
+        cls,
+        category_id: int,
+        session: AsyncSession,
+    ):
         """Получение products для category_id"""
         try:
             logger.info(f"Fetching all products for category_id {category_id}")
@@ -175,14 +182,16 @@ class ProductDO(BaseDO):
                 select(cls.model)
                 .where(cls.model.category_id == category_id)
                 .options(
-                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                    selectinload(cls.model.product_sizes)
+                    .selectinload(ProductSize.size)
                 )
             )
             result = await session.execute(query)
             return result.scalars().all()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching products for category_id {category_id}: {e}",
+                f"An error occurred while fetching products for category_id "
+                f"{category_id}: {e}",
             )
             raise e
 
@@ -195,14 +204,16 @@ class ProductDO(BaseDO):
                 select(cls.model)
                 .where(cls.model.id == product_id)
                 .options(
-                    selectinload(cls.model.product_sizes).selectinload(ProductSize.size)
+                    selectinload(cls.model.product_sizes)
+                    .selectinload(ProductSize.size)
                 )
             )
             result = await session.execute(query)
             return result.scalar_one_or_none()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching product with id {product_id}: {e}",
+                f"An error occurred while fetching product with id "
+                f"{product_id}: {e}",
             )
             raise e
 
@@ -216,7 +227,8 @@ class ProductDO(BaseDO):
             return result.scalar_one_or_none()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching product with id {photo_name}: {e}",
+                f"An error occurred while fetching product with id "
+                f"{photo_name}: {e}",
             )
             raise e
 
@@ -226,13 +238,15 @@ class ProductDO(BaseDO):
     ):
         """Получаем продукт по product_id и size_id"""
         try:
-            logger.info(f"Fetching product with id {product_id} and size_id {size_id}")
+            logger.info(f"Fetching product with id {product_id} and size_id "
+                        f"{size_id}")
             query = (
                 select(ProductSize)
                 .join(Product)
                 .join(Size)
                 .where(
-                    ProductSize.product_id == product_id, ProductSize.size_id == size_id
+                    ProductSize.product_id == product_id,
+                    ProductSize.size_id == size_id,
                 )
                 .options(
                     selectinload(ProductSize.product),
@@ -243,7 +257,8 @@ class ProductDO(BaseDO):
             return result.scalar_one_or_none()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching product with id {product_id} and size_id {size_id}: {e}",
+                f"An error occurred while fetching product with id "
+                f"{product_id} and size_id {size_id}: {e}",
             )
             raise e
 
@@ -254,7 +269,12 @@ class OrderItemDO(BaseDO):
     model = OrderItem
 
     @classmethod
-    async def add_many_by_order(cls, order: Order, session: AsyncSession, values: dict):
+    async def add_many_by_order(
+        cls,
+        order: Order,
+        session: AsyncSession,
+        values: dict,
+        ):
         """Добавление order_items для order"""
         logger.info(f"Adding multiple order items for order {order.id}")
         for item in values.cart_items:
@@ -324,12 +344,18 @@ class OrderDO(BaseDO):
             return result.scalars().all()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching orders for user ID {user_id}: {e}",
+                f"An error occurred while fetching orders for user ID "
+                f"{user_id}: {e}",
             )
             raise e
 
     @classmethod
-    async def get_all_by_status(cls, user_id: int, status: str, session: AsyncSession):
+    async def get_all_by_status(
+        cls,
+        user_id: int,
+        status: str,
+        session: AsyncSession,
+        ):
         """Получение всех orders для user_id по указанному статусу"""
         try:
             logger.info(f"Fetching all Order for user ID {user_id}")
@@ -347,7 +373,8 @@ class OrderDO(BaseDO):
             return result.scalars().all()
         except Exception as e:
             logger.error(
-                f"An error occurred while fetching orders for user ID {user_id}: {e}",
+                f"An error occurred while fetching orders for user ID "
+                f"{user_id}: {e}",
             )
             raise e
 
@@ -361,7 +388,8 @@ class OrderDO(BaseDO):
         """Получение всех orders для user_id по указанным статусам"""
         try:
             logger.info(
-                f"Fetching orders for user ID {user_id} with statuses: {statuses}"
+                f"Fetching orders for user ID {user_id} with statuses: "
+                f"{statuses}"
             )
             query = (
                 select(cls.model)
@@ -378,12 +406,18 @@ class OrderDO(BaseDO):
             return orders
         except Exception as e:
             logger.error(
-                f"Error fetching orders for user ID {user_id}: {e}", exc_info=True
+                f"Error fetching orders for user ID {user_id}: {e}",
+                exc_info=True
             )
             raise
 
     @classmethod
-    async def get_by_id(cls, order_id: int, user_id: int, session: AsyncSession):
+    async def get_by_id(
+        cls,
+        order_id: int,
+        user_id: int,
+        session: AsyncSession,
+        ):
         """Получение orders по order_id для указанного пользователя"""
         logger.info(f"Fetching order (ID: {order_id}) for user (ID: {user_id})")
         try:
@@ -400,19 +434,25 @@ class OrderDO(BaseDO):
             return order
         except Exception as e:
             logger.exception(
-                f"Error fetching order (ID: {order_id}) for user (ID: {user_id}): {e}"
+                f"Error fetching order (ID: {order_id}) for user (ID: "
+                f"{user_id}): {e}"
             )
             raise e
 
     @classmethod
     async def add(
-        cls, user_id: int, session: AsyncSession, values: dict, delivery_data: Delivery
+        cls,
+        user_id: int,
+        session: AsyncSession,
+        values: dict,
+        delivery_data: Delivery,
     ):
         """Добавление order для user_id"""
         logger.info(f"Creating new order for user_id {user_id}")
-        max_user_order_id_query = select(func.max(cls.model.user_order_id)).where(
-            cls.model.user_id == user_id
-        )
+        max_user_order_id_query = select(
+            func.max(cls.model.user_order_id)).where(
+                cls.model.user_id == user_id
+                )
         result = await session.execute(max_user_order_id_query)
         max_user_order_id = result.scalar() or 0
         new_instance = cls.model(

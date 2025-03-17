@@ -12,18 +12,39 @@ logger = logging.getLogger("fastapi")
 
 # Обработчик обычных http ошибок пишем в Warning
 async def http_exception_handler(request: Request, exc: HTTPException):
-    logger.warning(f"HTTP Exception {exc.status_code}: {exc.detail} | Path: {request.url.path}")
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    logger.warning(
+        f"HTTP Exception {exc.status_code}: {exc.detail} | "
+        f"Path: {request.url.path}"
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 # Обработчик валидационных ошибок пишем в Error
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(f"Validation Error: {exc.errors()} | Path: {request.url.path}", exc_info=True)
-    return JSONResponse(status_code=400, content={"detail": "Validation error"})
+async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ):
+    logger.error(
+        f"Validation Error: {exc.errors()} | "
+        f"Path: {request.url.path}", exc_info=True
+    )
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Validation error"},
+    )
 
 # Обработчик ошибок сервера и глобальных пишем в Critical
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.critical(f"Unhandled Exception: {str(exc)} | Path: {request.url.path}", exc_info=True)
-    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+    logger.critical(
+        f"Unhandled Exception: {str(exc)} | "
+        f"Path: {request.url.path}", exc_info=True
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+    )
 
 
 # Класс миддлварь для логгирования всех запросов на старте
@@ -32,5 +53,8 @@ class LogRequestsMiddleware(BaseHTTPMiddleware):
         logger.info(f"{request.method} Path: {request.url.path}")
         response = await call_next(request)
         if response.status_code < 400:
-            logger.info(f"Response Status: {response.status_code} | Path: {request.url.path}")
+            logger.info(
+                f"Response Status: {response.status_code} | "
+                f"Path: {request.url.path}"
+            )
         return response

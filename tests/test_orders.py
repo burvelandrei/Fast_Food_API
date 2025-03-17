@@ -1,10 +1,10 @@
 import pytest
 from datetime import datetime
 from tests.fixtures import (
-    order_with_items,
-    auth_headers_web,
-    cart_with_items,
-    products_with_sizes,
+    order_with_items, # noqa: F401
+    auth_headers_web, # noqa: F401
+    cart_with_items, # noqa: F401
+    products_with_sizes, # noqa: F401
 )
 from decimal import Decimal
 from services.redis_cart import CartDO
@@ -48,13 +48,15 @@ async def test_get_all_orders(
     test_session,
     mocker,
 ):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
     response = await client.get("/orders/", headers=headers)
     assert response.status_code == 200
     data = response.json()
 
     assert len(data) == len(order_with_items)
-    assert all(order["id"] in [o.id for o in order_with_items] for order in data)
+    assert all(
+        order["id"] in [o.id for o in order_with_items] for order in data
+    )
     fetch_from_db_mock = mocker.patch(
         "db.operations.OrderDO.get_all",
         return_value=[],
@@ -63,7 +65,9 @@ async def test_get_all_orders(
     response2 = await client.get("/orders/", headers=headers)
     assert response2.status_code == 200
     normalize_data = [normalize_order(order) for order in data]
-    normalize_response2 = [normalize_order(order) for order in response2.json()]
+    normalize_response2 = [
+        normalize_order(order) for order in response2.json()
+    ]
     assert normalize_data == normalize_response2
 
     fetch_from_db_mock.assert_not_called()
@@ -76,12 +80,15 @@ async def test_get_orders_by_status(
     auth_headers_web,
     mocker,
 ):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
 
     statuses = {order.status for order in order_with_items}
 
     for status in statuses:
-        response = await client.get(f"/orders/?status={status}", headers=headers)
+        response = await client.get(
+            f"/orders/?status={status}",
+            headers=headers,
+        )
         assert response.status_code == 200
 
         data = response.json()
@@ -93,10 +100,15 @@ async def test_get_orders_by_status(
             return_value=[],
         )
 
-        response2 = await client.get(f"/orders/?status={status}", headers=headers)
+        response2 = await client.get(
+            f"/orders/?status={status}",
+            headers=headers,
+        )
         assert response2.status_code == 200
         normalize_data = [normalize_order(order) for order in data]
-        normalize_response2 = [normalize_order(order) for order in response2.json()]
+        normalize_response2 = [
+            normalize_order(order) for order in response2.json()
+        ]
         assert normalize_data == normalize_response2
 
         fetch_from_db_mock.assert_not_called()
@@ -110,7 +122,7 @@ async def test_get_order_history(
     test_cache_manager,
     mocker,
 ):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
 
     completed_orders = [
         order for order in order_with_items if order.status == "completed"
@@ -130,7 +142,9 @@ async def test_get_order_history(
     response2 = await client.get("/orders/history/", headers=headers)
     assert response2.status_code == 200
     normalize_data = [normalize_order(order) for order in data]
-    normalize_response2 = [normalize_order(order) for order in response2.json()]
+    normalize_response2 = [
+        normalize_order(order) for order in response2.json()
+    ]
 
     assert normalize_data == normalize_response2
 
@@ -145,7 +159,7 @@ async def test_get_current_orders(
     test_cache_manager,
     mocker,
 ):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
 
     current_orders = [
         order for order in order_with_items if order.status != "completed"
@@ -165,7 +179,9 @@ async def test_get_current_orders(
     response2 = await client.get("/orders/current/", headers=headers)
     assert response2.status_code == 200
     normalize_data = [normalize_order(order) for order in data]
-    normalize_response2 = [normalize_order(order) for order in response2.json()]
+    normalize_response2 = [
+        normalize_order(order) for order in response2.json()
+    ]
 
     assert normalize_data == normalize_response2
 
@@ -180,7 +196,7 @@ async def test_get_order(
     test_cache_manager,
     mocker,
 ):
-    headers, user = auth_headers_web
+    headers, _ = auth_headers_web
     order = order_with_items[0]
     order_id = order.id
 
@@ -193,7 +209,9 @@ async def test_get_order(
     assert Decimal(data["total_amount"]) == Decimal(order.total_amount)
     assert data["status"] == order.status
     assert data["delivery"]["delivery_type"] == order.delivery.delivery_type
-    assert data["delivery"]["delivery_address"] == order.delivery.delivery_address
+    assert (
+        data["delivery"]["delivery_address"] == order.delivery.delivery_address
+    )
 
     assert len(data["order_items"]) == len(order.order_items)
     for item1, item2 in zip(data["order_items"], order.order_items):
@@ -223,7 +241,7 @@ async def test_confirmation_order(
     auth_headers_web,
     test_redis,
 ):
-    user_id, cart_key, items, headers, products, sizes = cart_with_items
+    _, cart_key, _, headers, _, _ = cart_with_items
 
     response = await client.post(
         "/orders/confirmation/",
@@ -255,17 +273,28 @@ async def test_repeat_order_to_cart(
     order = order_with_items[0]
     order_id = order.id
 
-    cart = await CartDO.get_cart(user_id=user.id, redis=test_redis, session=test_session)
+    cart = await CartDO.get_cart(
+        user_id=user.id,
+        redis=test_redis,
+        session=test_session,
+    )
     assert not cart or not cart.cart_items
 
-    response = await client.post(f"/orders/repeat/{order_id}/", headers=headers)
+    response = await client.post(
+        f"/orders/repeat/{order_id}/",
+        headers=headers,
+    )
 
     assert response.status_code == 200
     assert response.json() == {
         "message": "Products from the order have been added to the cart"
     }
 
-    cart_after = await CartDO.get_cart(user_id=user.id, redis=test_redis, session=test_session)
+    cart_after = await CartDO.get_cart(
+        user_id=user.id,
+        redis=test_redis,
+        session=test_session,
+    )
     assert cart_after is not None
     assert cart_after.cart_items
     assert len(cart_after.cart_items) == len(order.order_items)
