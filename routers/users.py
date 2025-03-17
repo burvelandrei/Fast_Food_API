@@ -64,7 +64,7 @@ async def register(
                 f"confirm:{confirmation_token}",
                 mapping=update_fields
             )
-            await redis.expire(f"confirm:{confirmation_token}", 30*60)
+            await redis.expire(f"confirm:{confirmation_token}", 30 * 60)
         else:
             raise HTTPException(
                 status_code=400,
@@ -84,7 +84,7 @@ async def register(
             await redis.hset(
                 f"confirm:{confirmation_token}", mapping=user_data.__dict__
             )
-        await redis.expire(f"confirm:{confirmation_token}", 30*60)
+        await redis.expire(f"confirm:{confirmation_token}", 30 * 60)
     background_tasks.add_task(
         send_confirmation_email,
         user_data.email,
@@ -183,7 +183,7 @@ async def login_user(
         user_web.email,
         user_web.password,
         session,
-        )
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

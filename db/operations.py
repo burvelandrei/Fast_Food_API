@@ -450,9 +450,10 @@ class OrderDO(BaseDO):
         """Добавление order для user_id"""
         logger.info(f"Creating new order for user_id {user_id}")
         max_user_order_id_query = select(
-            func.max(cls.model.user_order_id)).where(
-                cls.model.user_id == user_id
-                )
+            func.max(cls.model.user_order_id)
+        ).where(
+            cls.model.user_id == user_id
+        )
         result = await session.execute(max_user_order_id_query)
         max_user_order_id = result.scalar() or 0
         new_instance = cls.model(

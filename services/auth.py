@@ -122,6 +122,6 @@ def create_email_confirmation_token(email: str) -> str:
 def verify_email_confirmation_token(token: str) -> str | None:
     serializer = URLSafeTimedSerializer(settings.SECRET_KEY_EMAIL)
     try:
-        return serializer.loads(token, salt="email-confirm", max_age=30*60)
+        return serializer.loads(token, salt="email-confirm", max_age=30 * 60)
     except Exception:
         return None
