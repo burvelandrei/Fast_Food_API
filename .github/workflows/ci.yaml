@@ -51,7 +51,7 @@ jobs:
           TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
           TEST_REDIS_HOST: "localhost"
           TEST_REDIS_PORT: "6379"
-        run: pytest
+        run: python -m pytest -v
 
       - name: Проверка кода с flake8
         run: flake8 .
