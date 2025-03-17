@@ -23,10 +23,10 @@ jobs:
       S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
       DB_USER: test_user
       DB_PASSWORD: test_password
-      DB_HOST: db
+      DB_HOST: localhost
       DB_PORT: 5432
       DB_NAME: test_name
-      REDIS_HOST: redis
+      REDIS_HOST: localhost
       REDIS_PORT: 6379
       MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
@@ -69,8 +69,8 @@ jobs:
           - 5672:5672
           - 15672:15672
         env:
-          RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_USER }}
-          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_DEFAULT_USER: ${{ secrets.RMQ_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RMQ_PASSWORD }}
         options: >-
           --health-cmd "rabbitmqctl status"
           --health-interval 10s

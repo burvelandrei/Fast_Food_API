@@ -15,7 +15,8 @@ from config import settings
 
 # Настройки PostgreSQL
 TEST_DATABASE_URL = (
-    "postgresql+asyncpg://test_user:test_password@localhost:5432/test_name"
+    f"postgresql+asyncpg://test_user:test_password@"
+    f"localhost:5432/test_name"
 )
 engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestingSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -53,8 +54,8 @@ async def test_session():
 async def test_cache_manager():
     """Фикстура для тестового кэша"""
     redis = Redis(
-        host="localhost",
-        port=6379,
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
         decode_responses=False,
     )
     FastAPICache.init(
@@ -71,8 +72,8 @@ async def test_cache_manager():
 async def test_redis():
     """Фикстура для тестового редиса"""
     redis = Redis(
-        host="localhost",
-        port=6379,
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
         decode_responses=True,
     )
     await redis.flushdb()
