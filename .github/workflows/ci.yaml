@@ -44,12 +44,22 @@ jobs:
 
       - name: Запуск тестов с pytest
         env:
+          SERVER_HOST: "app"
+          SERVER_PORT: "8000"
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          SECRET_KEY_ADMIN: ${{ secrets.SECRET_KEY_ADMIN }}
+          SECRET_KEY_EMAIL: ${{ secrets.SECRET_KEY_EMAIL }}
+          SECRET_KEY_BOT: ${{ secrets.SECRET_KEY_BOT }}
+          S3_HOST: ${{ secrets.S3_HOST }}
+          S3_BACKET: ${{ secrets.S3_BACKET }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
           TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
           TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-          TEST_DB_HOST: "localhost"
+          TEST_DB_HOST: "postgres"
           TEST_DB_PORT: "5432"
           TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
-          TEST_REDIS_HOST: "localhost"
+          TEST_REDIS_HOST: "redis"
           TEST_REDIS_PORT: "6379"
         run: python -m pytest -v
 
