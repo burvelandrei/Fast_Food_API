@@ -11,6 +11,7 @@ from utils.middlewares import (
     LogRequestsMiddleware,
 )
 from utils.cache_manager import lifespan
+from config import settings
 
 
 app = FastAPI(title="FastFood API", lifespan=lifespan)
@@ -29,4 +30,4 @@ app.include_router(orders.router)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host=settings.SERVER_HOST, port=settings.SERVER_PORT, reload=True)

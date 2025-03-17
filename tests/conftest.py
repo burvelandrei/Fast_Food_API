@@ -13,7 +13,7 @@ from utils.redis_connect import get_redis
 from config import settings
 
 
-# Настройки PostgreSQL (локальная БД)
+# Настройки PostgreSQL
 TEST_DATABASE_URL = (
     f"postgresql+asyncpg://{settings.TEST_DB_USER}:{settings.TEST_DB_PASSWORD}@"
     f"{settings.TEST_DB_HOST}:{settings.TEST_DB_PORT}/{settings.TEST_DB_NAME}"
