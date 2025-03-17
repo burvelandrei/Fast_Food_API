@@ -15,7 +15,7 @@ from config import settings
 
 # Настройки PostgreSQL
 TEST_DATABASE_URL = (
-    f"postgresql+asyncpg://test_user:test_password@localhost:5432/test_name"
+    "postgresql+asyncpg://test_user:test_password@localhost:5432/test_name"
 )
 engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestingSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
