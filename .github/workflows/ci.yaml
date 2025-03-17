@@ -33,7 +33,7 @@ jobs:
       MAIL_FROM: ${{ secrets.MAIL_FROM }}
       MAIL_PORT: ${{ secrets.MAIL_PORT }}
       MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
-      RMQ_HOST: rabbitmq
+      RMQ_HOST: localhost
       RMQ_PORT: 5672
       RMQ_PLAGIN_PORT: 15672
       RMQ_USER: ${{ secrets.RMQ_USER }}
