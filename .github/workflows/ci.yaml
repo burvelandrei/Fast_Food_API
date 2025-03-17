@@ -85,7 +85,7 @@ jobs:
           TEST_DB_NAME: "test_name"
           TEST_REDIS_HOST: "redis"
           TEST_REDIS_PORT: "6379"
-        run: python -m pytest -v
+        run: python -m pytest -v -c pytest.ini
 
       - name: Проверка кода с flake8
         run: flake8 .
