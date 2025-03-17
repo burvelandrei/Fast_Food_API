@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+          POSTGRES_USER: "test_user"
+          POSTGRES_PASSWORD: "test_password"
+          POSTGRES_DB: "test_name"
         ports:
           - "5432:5432"
 
@@ -71,11 +71,11 @@ jobs:
           RMQ_PLAGIN_PORT: "15672"
           RMQ_USER: ${{ secrets.RMQ_USER }}
           RMQ_PASSWORD: ${{ secrets.RMQ_PASSWORD }}
-          TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
-          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          TEST_DB_USER: "test_user"
+          TEST_DB_PASSWORD: "test_password"
           TEST_DB_HOST: "postgres"
           TEST_DB_PORT: "5432"
-          TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+          TEST_DB_NAME: "test_name"
           TEST_REDIS_HOST: "redis"
           TEST_REDIS_PORT: "6379"
         run: python -m pytest -v
