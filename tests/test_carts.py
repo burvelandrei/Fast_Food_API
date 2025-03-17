@@ -3,10 +3,10 @@ import json
 from decimal import Decimal, ROUND_HALF_UP
 from db.operations import ProductDO
 from tests.fixtures import (
-    cart_with_items, # noqa: F401
-    auth_headers_web, # noqa: F401
-    products_with_sizes, # noqa: F401
-    empty_cart, # noqa: F401
+    cart_with_items,
+    auth_headers_web,
+    products_with_sizes,
+    empty_cart,
 )
 
 
@@ -184,8 +184,8 @@ async def test_get_cart_item_user(
     )
 
     assert (
-    Decimal(item_data["total_price"])
-    == expected_price * item_data["quantity"]
+        Decimal(item_data["total_price"])
+        == expected_price * item_data["quantity"]
     )
 
 

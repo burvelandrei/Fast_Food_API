@@ -6,10 +6,10 @@ from services.auth import (
     create_refresh_token,
 )
 from fixtures import (
-    web_user, # noqa: F401
-    tg_user, # noqa: F401
-    auth_headers_web, # noqa: F401
-    auth_headers_tg, # noqa: F401
+    web_user,
+    tg_user,
+    auth_headers_web,
+    auth_headers_tg,
 )
 
 

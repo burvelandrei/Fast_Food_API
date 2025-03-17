@@ -219,7 +219,7 @@ class CartDO:
         size_id: int,
         user_id: int,
         redis: Redis,
-        ):
+    ):
         """Удаление продукта из корзины"""
         logger.info(
             f"Removing product {product_id} size {size_id} from user_id "

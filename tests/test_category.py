@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures import category # noqa: F401
+from tests.fixtures import category
 
 
 @pytest.mark.asyncio

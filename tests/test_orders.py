@@ -1,10 +1,10 @@
 import pytest
 from datetime import datetime
 from tests.fixtures import (
-    order_with_items, # noqa: F401
-    auth_headers_web, # noqa: F401
-    cart_with_items, # noqa: F401
-    products_with_sizes, # noqa: F401
+    order_with_items,
+    auth_headers_web,
+    cart_with_items,
+    products_with_sizes,
 )
 from decimal import Decimal
 from services.redis_cart import CartDO

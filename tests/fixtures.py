@@ -140,7 +140,7 @@ async def cart_with_items(
     test_redis,
     auth_headers_web,
     products_with_sizes,
-    ):
+):
     """
     Фикстура, создающая корзину с элементами для пользователя.
     """

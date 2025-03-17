@@ -5,7 +5,7 @@ from alembic import context
 
 # Импортируем нашу базу данных и модели
 from db.models import Base
-import db.models # noqa: F401
+import db.models  # noqa: F401
 from config import settings
 
 

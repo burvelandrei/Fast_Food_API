@@ -21,11 +21,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content={"detail": exc.detail},
     )
 
+
 # Обработчик валидационных ошибок пишем в Error
 async def validation_exception_handler(
         request: Request,
         exc: RequestValidationError,
-    ):
+):
     logger.error(
         f"Validation Error: {exc.errors()} | "
         f"Path: {request.url.path}", exc_info=True
@@ -34,6 +35,7 @@ async def validation_exception_handler(
         status_code=400,
         content={"detail": "Validation error"},
     )
+
 
 # Обработчик ошибок сервера и глобальных пишем в Critical
 async def global_exception_handler(request: Request, exc: Exception):

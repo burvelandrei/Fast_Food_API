@@ -71,8 +71,10 @@ async def upload_to_s3(
         if existing_product and existing_product.id != model.id:
             raise HTTPException(
                 status_code=400,
-                detail=f"The file with this name already exists for "
-                    f"another product!"
+                detail=(
+                    "The file with this name already exists for "
+                    "another product!"
+                )
             )
     old_file_name = None if is_created else model.photo_name
     if old_file_name and old_file_name != new_file_name:

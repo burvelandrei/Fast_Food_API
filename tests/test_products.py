@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from tests.fixtures import products_with_sizes # noqa: F401
+from tests.fixtures import products_with_sizes
 
 
 def normalize_product(product):

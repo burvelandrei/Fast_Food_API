@@ -116,7 +116,7 @@ class UserDO(BaseDO):
     async def get_by_email(cls, email: str, session: AsyncSession):
         """Получить элементы user по email"""
         try:
-            logger.info(f"Fetching User by email")
+            logger.info("Fetching User by email")
             query = select(cls.model).where(cls.model.email == email)
             result = await session.execute(query)
             return result.scalar_one_or_none()
@@ -130,7 +130,7 @@ class UserDO(BaseDO):
     async def get_by_tg_id(cls, tg_id: str, session: AsyncSession):
         """Получить элементы user по tg_id"""
         try:
-            logger.info(f"Fetching User by Telegram ID")
+            logger.info("Fetching User by Telegram ID")
             query = select(cls.model).where(cls.model.tg_id == tg_id)
             result = await session.execute(query)
             return result.scalar_one_or_none()
@@ -156,7 +156,7 @@ class ProductDO(BaseDO):
     async def get_all(cls, session: AsyncSession):
         """Получение products"""
         try:
-            logger.info(f"Fetching all products")
+            logger.info("Fetching all products")
             query = select(cls.model).options(
                 selectinload(cls.model.product_sizes)
                 .selectinload(ProductSize.size)
@@ -274,7 +274,7 @@ class OrderItemDO(BaseDO):
         order: Order,
         session: AsyncSession,
         values: dict,
-        ):
+    ):
         """Добавление order_items для order"""
         logger.info(f"Adding multiple order items for order {order.id}")
         for item in values.cart_items:
@@ -355,7 +355,7 @@ class OrderDO(BaseDO):
         user_id: int,
         status: str,
         session: AsyncSession,
-        ):
+    ):
         """Получение всех orders для user_id по указанному статусу"""
         try:
             logger.info(f"Fetching all Order for user ID {user_id}")
@@ -417,7 +417,7 @@ class OrderDO(BaseDO):
         order_id: int,
         user_id: int,
         session: AsyncSession,
-        ):
+    ):
         """Получение orders по order_id для указанного пользователя"""
         logger.info(f"Fetching order (ID: {order_id}) for user (ID: {user_id})")
         try:
@@ -472,7 +472,7 @@ class OrderDO(BaseDO):
                 delivery_data=delivery_data,
             )
             await session.commit()
-            logger.info(f"Added new Order")
+            logger.info("Added new Order")
         except Exception as e:
             await session.rollback()
             logger.error(f"Error adding Order: {e}")
