@@ -1,0 +1,73 @@
+name: CI (Test and Docker build and push)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+        ports:
+          - "5432:5432"
+
+      redis:
+        image: redis:7
+        ports:
+          - "6379:6379"
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ожидание запуска БД и Redis
+        run: sleep 10
+
+      - name: Запуск тестов с pytest
+        env:
+          TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          TEST_DB_HOST: "localhost"
+          TEST_DB_PORT: "5432"
+          TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+          TEST_REDIS_HOST: "localhost"
+          TEST_REDIS_PORT: "6379"
+        run: pytest
+
+      - name: Проверка кода с flake8
+        run: flake8 .
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Вход в Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Сборка и пуш Docker образа
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/fastfood-api:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/fastfood-api:latest
