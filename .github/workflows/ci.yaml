@@ -85,7 +85,7 @@ jobs:
       - name: Проверка кода с flake8
         run: |
           pip install flake8
-          flake8 . --count --max-line-length=80 --statistics
+          flake8 . --count --max-line-length=80 --statistics --config=tests/.flake8
 
   docker:
     needs: test

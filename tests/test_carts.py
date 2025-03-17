@@ -135,8 +135,8 @@ async def test_get_cart_user(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
         assert (
-                Decimal(item["total_price"])
-                == expected_price * item["quantity"]
+            Decimal(item["total_price"])
+            == expected_price * item["quantity"]
         )
 
         total_amount += Decimal(item["total_price"])
