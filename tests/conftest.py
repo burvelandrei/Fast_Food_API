@@ -18,7 +18,7 @@ TEST_DATABASE_URL = (
     f"postgresql+asyncpg://{settings.TEST_DB_USER}:{settings.TEST_DB_PASSWORD}@"
     f"{settings.TEST_DB_HOST}:{settings.TEST_DB_PORT}/{settings.TEST_DB_NAME}"
 )
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestingSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
@@ -33,6 +33,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def prepare_database():
+    print(f"Подключение к БД: {TEST_DATABASE_URL}")
     """Фикстура для БД, создаёт и удаляет таблицы"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
