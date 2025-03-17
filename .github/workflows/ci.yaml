@@ -19,11 +19,21 @@ jobs:
           POSTGRES_DB: "test_name"
         ports:
           - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
       redis:
         image: redis:7
         ports:
           - "6379:6379"
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Клонирование репозитория
@@ -38,9 +48,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Ожидание запуска БД и Redis
-        run: sleep 10
 
       - name: Запуск тестов с pytest
         env:
