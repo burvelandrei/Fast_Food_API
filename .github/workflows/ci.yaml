@@ -63,6 +63,20 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        env:
+          RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_PASSWORD }}
+        options: >-
+          --health-cmd "rabbitmqctl status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Клонирование репозитория
         uses: actions/checkout@v4
