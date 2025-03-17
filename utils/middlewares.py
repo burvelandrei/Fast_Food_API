@@ -10,6 +10,7 @@ from utils.logger import logging_config
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger("fastapi")
 
+
 # Обработчик обычных http ошибок пишем в Warning
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.warning(
