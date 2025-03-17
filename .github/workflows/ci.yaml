@@ -52,6 +52,7 @@ jobs:
           sleep 20
       - name: Запуск тестов с pytest
         env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           SERVER_HOST: app
           SERVER_PORT: 8000
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
