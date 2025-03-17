@@ -3,8 +3,18 @@ import json
 from faker import Faker
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.models import Category, Product, Size, ProductSize, User
+from db.models import (
+    Category,
+    Product,
+    Size,
+    ProductSize,
+    User,
+    Order,
+    OrderItem,
+    Delivery,
+)
 from schemas.cart import CartItemCreate
+from schemas.order import OrderStatus, DeliveryType
 from services.auth import get_hash_password
 
 fake = Faker()
@@ -22,6 +32,20 @@ class AsyncSQLAlchemyModelFactory(factory.Factory):
         session.add(obj)
         await session.commit()
         await session.refresh(obj)
+        return obj
+
+
+class AsyncSQLAlchemyModelFactoryFlush(factory.Factory):
+    """Асинхронная фабрика для моделей"""
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    async def create_async(cls, session: AsyncSession, **kwargs):
+        obj = cls.build(**kwargs)
+        session.add(obj)
+        await session.flush()
         return obj
 
 
@@ -118,3 +142,49 @@ class CartFactory:
         """Очищает корзину пользователя"""
         cart_key = f"cart:{user_id}"
         await test_redis.delete(cart_key)
+
+
+class OrderFactory(AsyncSQLAlchemyModelFactoryFlush):
+    """Фабрика для модели Order"""
+
+    class Meta:
+        model = Order
+
+    id = factory.Sequence(lambda n: n)
+    user_id = None
+    user_order_id = None
+    total_amount = factory.LazyAttribute(
+        lambda _: Decimal(fake.random_number(digits=2))
+    )
+    status = factory.LazyFunction(
+        lambda: fake.random_element(elements=[s.value for s in OrderStatus])
+    )
+
+
+class OrderItemFactory(AsyncSQLAlchemyModelFactoryFlush):
+    """Фабрика для модели OrderItem"""
+
+    class Meta:
+        model = OrderItem
+
+    order_id = None
+    product_id = factory.Sequence(lambda n: n)
+    size_id = factory.Sequence(lambda n: n)
+    name = factory.LazyFunction(lambda: fake.word())
+    size_name = factory.LazyFunction(lambda: fake.word())
+    quantity = factory.LazyFunction(lambda: fake.random_int(min=1, max=10))
+    total_price = factory.LazyAttribute(lambda _: Decimal(fake.random_number(digits=2)))
+
+
+class DeliveryFactory(AsyncSQLAlchemyModelFactoryFlush):
+    """Фабрика для модели DeliveryType"""
+
+    class Meta:
+        model = Delivery
+
+    id = factory.Sequence(lambda n: n)
+    order_id = None
+    delivery_type = factory.LazyFunction(
+        lambda: fake.random_element(elements=DeliveryType)
+    )
+    delivery_address = factory.LazyFunction(lambda: fake.address())

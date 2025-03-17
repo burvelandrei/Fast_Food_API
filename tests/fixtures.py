@@ -1,6 +1,7 @@
 import pytest_asyncio
 import random
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from factories import (
     CategoryFactory,
     ProductFactory,
@@ -9,7 +10,11 @@ from factories import (
     WebUserFactory,
     TgUserFactory,
     CartFactory,
+    OrderFactory,
+    OrderItemFactory,
+    DeliveryFactory,
 )
+from db.models import Order
 from services.auth import create_access_token
 from config import settings
 
@@ -89,7 +94,8 @@ async def auth_headers_web(test_session: AsyncSession):
     )
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    return headers, user
+    yield headers, user
+    await test_session.rollback()
 
 
 @pytest_asyncio.fixture
@@ -104,7 +110,8 @@ async def auth_headers_tg(test_session: AsyncSession):
     )
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    return headers, user
+    yield headers, user
+    await test_session.rollback()
 
 
 @pytest_asyncio.fixture
@@ -149,3 +156,54 @@ async def cart_with_items(test_redis, auth_headers_web, products_with_sizes):
     yield user.id, f"cart:{user.id}", items, headers, products, sizes
 
     await CartFactory.clear_cart(test_redis=test_redis, user_id=user.id)
+
+
+@pytest_asyncio.fixture
+async def order_with_items(
+    test_session,
+    auth_headers_web,
+    products_with_sizes,
+):
+    """
+    Фикстура, создающая заказ с товарами из products_with_sizes
+    """
+    headers, user = auth_headers_web
+    products, sizes, _ = products_with_sizes
+
+    orders = []
+    for _ in range(5):
+        max_user_order_id_query = select(func.max(Order.user_order_id)).where(
+            Order.user_id == user.id
+        )
+        result = await test_session.execute(max_user_order_id_query)
+        max_user_order_id = result.scalar() or 0
+        order = await OrderFactory.create_async(
+            session=test_session,
+            user_id=user.id,
+            user_order_id=max_user_order_id + 1,
+        )
+        orders.append(order)
+        order_items = []
+        for product in products[:2]:
+            for size in sizes[:2]:
+                quantity = random.randint(1, 5)
+                order_item = await OrderItemFactory.create_async(
+                    order_id=order.id,
+                    product_id=product.id,
+                    size_id=size.id,
+                    quantity=quantity,
+                    session=test_session,
+                )
+                order_items.append(order_item)
+        delivery = await DeliveryFactory.create_async(
+            session=test_session, order_id=order.id
+        )
+
+    await test_session.commit()
+
+    yield orders
+
+    for order in orders:
+        await test_session.delete(order)
+
+    await test_session.commit()
