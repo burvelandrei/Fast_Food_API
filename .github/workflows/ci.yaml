@@ -83,8 +83,9 @@ jobs:
       #   run: python -m pytest -v -c pytest.ini
 
       - name: Проверка кода с flake8
-        run: pip install flake8 . --count --max-line-length=80 --statistics
-        run: flake8 .
+        run: |
+          pip install flake8
+          flake8 . --count --max-line-length=80 --statistics
 
   docker:
     needs: test
