@@ -34,7 +34,7 @@ jobs:
       MAIL_PORT: ${{ secrets.MAIL_PORT }}
       MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
       RMQ_HOST: ${{ secrets.RMQ_HOST }}
-      RMQ_PORT: ${{ secrets.RMQ_HOST }}
+      RMQ_PORT: ${{ secrets.RMQ_PORT }}
       RMQ_PLAGIN_PORT: ${{ secrets.RMQ_PLAGIN_PORT }}
       RMQ_USER: ${{ secrets.RMQ_USER }}
       RMQ_PASSWORD: ${{ secrets.RMQ_PASSWORD }}
