@@ -15,8 +15,8 @@ from config import settings
 
 # Настройки PostgreSQL
 TEST_DATABASE_URL = (
-    f"postgresql+asyncpg://{settings.TEST_DB_USER}:{settings.TEST_DB_PASSWORD}@"
-    f"{settings.TEST_DB_HOST}:{settings.TEST_DB_PORT}/{settings.TEST_DB_NAME}"
+    f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@"
+    f"{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 )
 engine = create_async_engine(TEST_DATABASE_URL, echo=True)
 TestingSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -33,7 +33,6 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def prepare_database():
-    print(f"Подключение к БД: {TEST_DATABASE_URL}")
     """Фикстура для БД, создаёт и удаляет таблицы"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -55,8 +54,8 @@ async def test_session():
 async def test_cache_manager():
     """Фикстура для тестового кэша"""
     redis = Redis(
-        host=settings.TEST_REDIS_HOST,
-        port=settings.TEST_REDIS_PORT,
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
         decode_responses=False,
     )
     FastAPICache.init(
@@ -73,8 +72,8 @@ async def test_cache_manager():
 async def test_redis():
     """Фикстура для тестового редиса"""
     redis = Redis(
-        host=settings.TEST_REDIS_HOST,
-        port=settings.TEST_REDIS_PORT,
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
         decode_responses=True,
     )
     await redis.flushdb()

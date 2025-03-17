@@ -3,6 +3,7 @@ from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
+    DOCKER_HUB_USERNAME: str
     SERVER_HOST: str
     SERVER_PORT: int
 
@@ -39,15 +40,6 @@ class Settings(BaseSettings):
     RMQ_PLAGIN_PORT: int
     RMQ_USER: str
     RMQ_PASSWORD: str
-
-    TEST_DB_USER: str
-    TEST_DB_PASSWORD: str
-    TEST_DB_HOST: str
-    TEST_DB_PORT: int
-    TEST_DB_NAME: str
-
-    TEST_REDIS_HOST: str
-    TEST_REDIS_PORT: int
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 

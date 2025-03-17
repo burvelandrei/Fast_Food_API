@@ -9,51 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      SERVER_HOST: "app"
-      SERVER_PORT: "8000"
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      SECRET_KEY_ADMIN: ${{ secrets.SECRET_KEY_ADMIN }}
-      SECRET_KEY_EMAIL: ${{ secrets.SECRET_KEY_EMAIL }}
-      SECRET_KEY_BOT: ${{ secrets.SECRET_KEY_BOT }}
-      S3_HOST: ${{ secrets.S3_HOST }}
-      S3_BACKET: ${{ secrets.S3_BACKET }}
-      S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
-      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: "postgres"
-      DB_PORT: "5432"
-      DB_NAME: ${{ secrets.DB_NAME }}
-      REDIS_HOST: "redis"
-      REDIS_PORT: "6379"
-      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-      MAIL_FROM: ${{ secrets.MAIL_FROM }}
-      MAIL_PORT: ${{ secrets.MAIL_PORT }}
-      MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
-      RMQ_HOST: "rabbitmq"
-      RMQ_PORT: "5672"
-      RMQ_PLAGIN_PORT: "15672"
-      RMQ_USER: ${{ secrets.RMQ_USER }}
-      RMQ_PASSWORD: ${{ secrets.RMQ_PASSWORD }}
-      TEST_DB_USER: "test_user"
-      TEST_DB_PASSWORD: "test_password"
-      TEST_DB_HOST: "postgres"
-      TEST_DB_PORT: "5432"
-      TEST_DB_NAME: "test_name"
-      TEST_REDIS_HOST: "redis"
-      TEST_REDIS_PORT: "6379"
-
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: "test_user"
-          POSTGRES_PASSWORD: "test_password"
-          POSTGRES_DB: "test_name"
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_name
         ports:
-          - "5432:5432"
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U test_user"
           --health-interval 10s
@@ -63,7 +27,7 @@ jobs:
       redis:
         image: redis:7
         ports:
-          - "6379:6379"
+          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -87,6 +51,34 @@ jobs:
         run: |
           sleep 20
       - name: Запуск тестов с pytest
+        env:
+          SERVER_HOST: app
+          SERVER_PORT: 8000
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          SECRET_KEY_ADMIN: ${{ secrets.SECRET_KEY_ADMIN }}
+          SECRET_KEY_EMAIL: ${{ secrets.SECRET_KEY_EMAIL }}
+          SECRET_KEY_BOT: ${{ secrets.SECRET_KEY_BOT }}
+          S3_HOST: ${{ secrets.S3_HOST }}
+          S3_BACKET: ${{ secrets.S3_BACKET }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          DB_HOST: postgres
+          DB_PORT: 5432
+          DB_NAME: test_name
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          RMQ_HOST: rabbitmq
+          RMQ_PORT: 5672
+          RMQ_PLAGIN_PORT: 15672
+          RMQ_USER: ${{ secrets.RMQ_USER }}
+          RMQ_PASSWORD: ${{ secrets.RMQ_PASSWORD }}
         run: python -m pytest -v -c pytest.ini
 
       - name: Проверка кода с flake8
