@@ -3,9 +3,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-logs/
-*.log
-
 venv/
 .env
 .env.example

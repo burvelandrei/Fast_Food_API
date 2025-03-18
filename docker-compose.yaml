@@ -4,7 +4,7 @@ services:
     container_name: fastfood-api
     restart: always
     volumes:
-      - logs_volume:/app/logs
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
@@ -30,7 +30,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,6 +41,8 @@ services:
     restart: always
     ports:
       - "6380:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -66,4 +68,4 @@ services:
 
 volumes:
   pg_data:
-  logs_volume:
+  redis_data:
