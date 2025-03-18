@@ -21,3 +21,5 @@ Pipfile.lock
 .gitignore
 
 .github/
+
+docker-compose.yaml
