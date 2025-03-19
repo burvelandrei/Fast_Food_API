@@ -1,5 +1,13 @@
+import logging
+import logging.config
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from utils.logger import logging_config
 from config import settings
+
+
+logging.config.dictConfig(logging_config)
+logger = logging.getLogger("send_email")
+
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -46,5 +54,12 @@ async def send_confirmation_email(email: str, token: str):
         body=email_body,
         subtype="html",
     )
-    fm = FastMail(conf)
-    await fm.send_message(message)
+    try:
+        fm = FastMail(conf)
+        await fm.send_message(message)
+        logger.info("Confirmation email successfully sent")
+    except Exception as e:
+        logger.error(
+            f"Failed to send confirmation email {e}",
+            exc_info=True,
+        )

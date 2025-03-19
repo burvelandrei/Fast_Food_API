@@ -1,11 +1,18 @@
 import boto3
+import logging
+import logging.config
 from fastapi import UploadFile, HTTPException
 from botocore.exceptions import ClientError
 from botocore.config import Config
 from db.connect import AsyncSessionLocal
 from db.operations import ProductDO
 from db.models import Product
+from utils.logger import logging_config
 from config import settings
+
+
+logging.config.dictConfig(logging_config)
+logger = logging.getLogger("s3")
 
 
 # Создаем клиент S3 с указанием ссылки на хранилище
@@ -30,21 +37,34 @@ def check_file_exists_to_s3(
             Bucket=settings.S3_BACKET,
             Key=file_path,
         )
+        logger.info(f"File found in S3: {file_path}")
         return True
     except ClientError as e:
         if e.response["Error"]["Code"] == "404":
+            logger.info(f"File not found in S3: {file_path}")
             return False
         else:
+            logger.error(
+                f"Error checking file in S3: {file_path}, {e}",
+                exc_info=True,
+            )
             raise e
 
 
 def get_last_modified_to_s3(file_path: str):
-    response = s3_client.head_object(
-        Bucket=settings.S3_BACKET,
-        Key=file_path,
-    )
-    last_modified = response["LastModified"]
-    return last_modified
+    try:
+        response = s3_client.head_object(
+            Bucket=settings.S3_BACKET,
+            Key=file_path,
+        )
+        last_modified = response["LastModified"]
+        return last_modified
+    except ClientError as e:
+        logger.error(
+            f"Error getting last modified date for {file_path}: {e}",
+            exc_info=True,
+        )
+        raise e
 
 
 async def upload_to_s3(
@@ -61,6 +81,7 @@ async def upload_to_s3(
     """
     new_file_name = file.filename
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_file_name}"
+    logger.info(f"Uploading file to S3: {file_path}")
     file_exists = check_file_exists_to_s3(file_path)
     if file_exists:
         async with AsyncSessionLocal() as session:
@@ -79,13 +100,21 @@ async def upload_to_s3(
     old_file_name = None if is_created else model.photo_name
     if old_file_name and old_file_name != new_file_name:
         await delete_from_s3(file_folder, old_file_name)
-    s3_client.upload_fileobj(
-        file.file,
-        settings.S3_BACKET,
-        file_path,
-        ExtraArgs={"ACL": "public-read"},
-    )
-    return new_file_name
+    try:
+        s3_client.upload_fileobj(
+            file.file,
+            settings.S3_BACKET,
+            file_path,
+            ExtraArgs={"ACL": "public-read"},
+        )
+        logger.info(f"File uploaded successfully: {file_path}")
+        return new_file_name
+    except Exception as e:
+        logger.error(
+            f"Failed to upload file {file_path}: {e}",
+            exc_info=True,
+        )
+        raise e
 
 
 async def delete_from_s3(file_folder: str, file_name: str):
@@ -100,7 +129,12 @@ async def delete_from_s3(file_folder: str, file_name: str):
             Bucket=settings.S3_BACKET,
             Key=file_path,
         )
+        logger.info(f"File deleted from S3: {file_path}")
     except Exception as e:
+        logger.error(
+            f"Failed to delete file {file_path}: {e}",
+            exc_info=True,
+        )
         raise e
 
 
@@ -113,4 +147,5 @@ def get_s3_url(file_folder: str, file_name: str):
     if check_file_exists_to_s3(file_path=file_path):
         file_url = f"/{file_path}?{last_modifed}"
         return f"{settings.S3_HOST}{settings.S3_BACKET}{file_url}"
+    logger.warning(f"File not found in S3, cannot generate URL: {file_path}")
     return None

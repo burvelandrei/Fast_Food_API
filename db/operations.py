@@ -419,7 +419,9 @@ class OrderDO(BaseDO):
         session: AsyncSession,
     ):
         """Получение orders по order_id для указанного пользователя"""
-        logger.info(f"Fetching order (ID: {order_id}) for user (ID: {user_id})")
+        logger.info(
+            f"Fetching order (ID: {order_id}) for user (ID: {user_id})"
+        )
         try:
             query = (
                 select(cls.model)
