@@ -7,7 +7,7 @@ from config import settings
 
 
 logging.config.dictConfig(logging_config)
-logger = logging.getLogger("rabbit")
+logger = logging.getLogger("rabbit_producer")
 
 
 # Функция для публикации в rabbitmq информации об успешном подтверждении почты

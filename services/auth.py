@@ -21,10 +21,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def verify_password(plain_password, hashed_password):
+    """Функция проверки захэшированного пароля"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_hash_password(password):
+    """Функция хэширования пароля"""
     return pwd_context.hash(password)
 
 
@@ -41,6 +43,7 @@ async def authentificate_user(
 
 
 def create_access_token(data: dict, secret_key: str):
+    """Функция создания access токена"""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -53,6 +56,7 @@ def create_access_token(data: dict, secret_key: str):
 
 
 def create_refresh_token(data: dict, secret_key: str):
+    """Функция создания refresh токена"""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
 
@@ -114,12 +118,14 @@ async def get_current_user(
     return user
 
 
-def create_email_confirmation_token(email: str) -> str:
+def create_email_confirmation_token(email: str):
+    """Функция создания токена для подтверждения регистрации"""
     serializer = URLSafeTimedSerializer(settings.SECRET_KEY_EMAIL)
     return serializer.dumps(email, salt="email-confirm")
 
 
-def verify_email_confirmation_token(token: str) -> str | None:
+def verify_email_confirmation_token(token: str):
+    """Функция проверки токена подтверждения регистрации"""
     serializer = URLSafeTimedSerializer(settings.SECRET_KEY_EMAIL)
     try:
         return serializer.loads(token, salt="email-confirm", max_age=30 * 60)

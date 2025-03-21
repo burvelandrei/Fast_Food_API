@@ -1,5 +1,11 @@
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    BackgroundTasks,
+)
 from fastapi.responses import JSONResponse
 from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,9 +46,12 @@ async def register(
         email=user_data.email,
         session=session,
     )
-
+    # если пользовватель уже есть по одному из ресурсов
+    # проверяем откуда пришёл
     if db_user:
         update_fields = {}
+        # есл пользователь пришёл с апи обновляем пользователя
+        # (добавляя пароль)
         if (
             isinstance(user_data, UserDataWeb)
             and db_user.tg_id
@@ -51,6 +60,8 @@ async def register(
             update_fields["hashed_password"] = (
                 get_hash_password(user_data.password)
             )
+        # есл пользователь пришёл с tg бота обновляем пользователя
+        # (добавляя tg_id)
         elif (
             isinstance(user_data, UserDataTg)
             and db_user.hashed_password
@@ -70,7 +81,10 @@ async def register(
                 status_code=400,
                 detail="User already registered"
             )
+    # если пользователя такого пользователя нет
+    # пишем в бд
     else:
+        # если пришёл через апи пишем email и password
         if isinstance(user_data, UserDataWeb):
             hashed_password = get_hash_password(user_data.password)
             await redis.hset(
@@ -80,11 +94,13 @@ async def register(
                     "hashed_password": hashed_password,
                 },
             )
+        # если пришёл через tg бот пишем email и tg_id
         elif isinstance(user_data, UserDataTg):
             await redis.hset(
                 f"confirm:{confirmation_token}", mapping=user_data.__dict__
             )
         await redis.expire(f"confirm:{confirmation_token}", 30 * 60)
+    # отправляем на почту сообщение для подтверждения регистрации
     background_tasks.add_task(
         send_confirmation_email,
         user_data.email,
@@ -105,24 +121,20 @@ async def confirmation_email(
 ):
     email = verify_email_confirmation_token(token)
     user_data = await redis.hgetall(f"confirm:{token}")
-
     if not email or not user_data:
         raise HTTPException(
             status_code=400,
             detail="Invalid or expired token",
         )
-
     db_user = await UserDO.get_by_email(
         email=user_data["email"],
         session=session,
     )
-
     if db_user and db_user.hashed_password and db_user.tg_id:
         raise HTTPException(
             status_code=400,
             detail="Email already confirmed",
         )
-
     if not db_user:
         await UserDO.add(session=session, **user_data)
     else:
@@ -138,9 +150,8 @@ async def confirmation_email(
                 id=db_user.id,
                 **{"tg_id": user_data["tg_id"]},
             )
-
     await redis.delete(f"confirm:{token}")
-
+    # если пользователь пришёл через апи - выдаём токены
     if "hashed_password" in user_data:
         access_token = create_access_token(
             data={"email": user_data["email"]},
@@ -159,6 +170,8 @@ async def confirmation_email(
             },
             status_code=200,
         )
+    # если пользователь пришел через tg бота - выводим
+    # сообщение об успехе и передаём в бота через rabbit
     if "tg_id" in user_data:
         await publish_confirmations(
             {
@@ -232,7 +245,6 @@ async def refresh_access_token(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid refresh token",
     )
-
     try:
         payload = jwt.decode(
             token_data.refresh_token,
@@ -249,7 +261,6 @@ async def refresh_access_token(
         )
     except jwt.PyJWTError:
         raise invalid_refresh_token_exception
-
     new_access_token = create_access_token(
         data={"email": email},
         secret_key=settings.SECRET_KEY,

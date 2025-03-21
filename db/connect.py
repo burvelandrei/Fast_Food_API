@@ -20,7 +20,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-# Функция для получения объекта сессии
 async def get_session():
+    """Функция для получения сессии"""
     async with AsyncSessionLocal() as session:
         yield session

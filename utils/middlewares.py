@@ -11,8 +11,8 @@ logging.config.dictConfig(logging_config)
 logger = logging.getLogger("fastapi")
 
 
-# Обработчик обычных http ошибок пишем в Warning
 async def http_exception_handler(request: Request, exc: HTTPException):
+    """Обработчик обычных http ошибок пишем в Warning"""
     logger.warning(
         f"HTTP Exception {exc.status_code}: {exc.detail} | "
         f"Path: {request.url.path}"
@@ -23,11 +23,11 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-# Обработчик валидационных ошибок пишем в Error
 async def validation_exception_handler(
         request: Request,
         exc: RequestValidationError,
 ):
+    """Обработчик валидационных ошибок пишем в Error"""
     logger.error(
         f"Validation Error: {exc.errors()} | "
         f"Path: {request.url.path}", exc_info=True
@@ -38,8 +38,8 @@ async def validation_exception_handler(
     )
 
 
-# Обработчик ошибок сервера и глобальных пишем в Critical
 async def global_exception_handler(request: Request, exc: Exception):
+    """Обработчик ошибок сервера и глобальных пишем в Critical"""
     logger.critical(
         f"Unhandled Exception: {str(exc)} | "
         f"Path: {request.url.path}", exc_info=True
@@ -50,8 +50,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Класс миддлварь для логгирования всех запросов на старте
 class LogRequestsMiddleware(BaseHTTPMiddleware):
+    """Класс миддлварь для логгирования всех запросов на старте"""
     async def dispatch(self, request: Request, call_next):
         logger.info(f"{request.method} Path: {request.url.path}")
         response = await call_next(request)

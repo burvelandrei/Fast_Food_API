@@ -93,11 +93,16 @@ class ProductAdmin(ModelView, model=Product):
     can_export = False
 
     def get_photo_url(self, obj):
+        """Функция для получения полной ссылки файла в S3"""
         model_name = obj.__class__.__name__
         file_folder = model_name.lower() + "s"
         return get_s3_url(file_folder=file_folder, file_name=obj.photo_name)
 
     async def on_model_change(self, data, model, is_created, request):
+        """
+        Метод выполняемый перед сохранением, загружает файл
+        через upload_to_s3 и записывает в БД
+        """
         file = data.get("photo_name")
         file_folder = model.__class__.__name__.lower() + "s"
         if file and isinstance(file, UploadFile):
@@ -114,6 +119,7 @@ class ProductAdmin(ModelView, model=Product):
             data["photo_name"] = file
 
     async def on_model_delete(self, model, request):
+        """Метод для удаления файла из S3 вместе с объектом БД"""
         if model.photo_name:
             await delete_from_s3(
                 file_folder=model.__class__.__name__.lower() + "s",
@@ -220,8 +226,10 @@ class DeliveryAdmin(ModelView, model=Delivery):
     can_export = False
 
 
-# Функция для инициализации админки и подключения моделей админки
 def setup_admin(app):
+    """
+    Функция для инициализации админки и подключения моделей админки
+    """
     admin = CustomAdmin(
         app,
         engine,

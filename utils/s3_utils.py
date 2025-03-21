@@ -30,7 +30,7 @@ def check_file_exists_to_s3(
     file_path: str,
 ):
     """
-    Проверяет файл в хранилище S3
+    Проверка файла в хранилище S3
     """
     try:
         s3_client.head_object(
@@ -52,6 +52,9 @@ def check_file_exists_to_s3(
 
 
 def get_last_modified_to_s3(file_path: str):
+    """
+    Получение даты последнего изменения файла в S3
+    """
     try:
         response = s3_client.head_object(
             Bucket=settings.S3_BACKET,
@@ -74,10 +77,10 @@ async def upload_to_s3(
     is_created: bool,
 ) -> str:
     """
-    Загружает файл в S3,
-    если файл для этого продукта существует - удаляем его,
+    Загрузка файл в S3,
+    если файл для этого продукта существует - удаляет его,
     если файл с таким именем уже есть
-    у другого продукта - выбрасывем исключение
+    у другого объекта - выбрасывет исключение
     """
     new_file_name = file.filename
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{new_file_name}"
@@ -89,15 +92,16 @@ async def upload_to_s3(
                 photo_name=new_file_name,
                 session=session,
             )
+        # если файл уже есть у другого объекта - выводим ошибку
         if existing_product and existing_product.id != model.id:
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    "The file with this name already exists for "
-                    "another product!"
+                    "The file with this name already exists"
                 )
             )
     old_file_name = None if is_created else model.photo_name
+    # удаляем старый файл при сохранении нового
     if old_file_name and old_file_name != new_file_name:
         await delete_from_s3(file_folder, old_file_name)
     try:
@@ -119,7 +123,7 @@ async def upload_to_s3(
 
 async def delete_from_s3(file_folder: str, file_name: str):
     """
-    Удаляет файл из S3
+    Удаляение файла из S3
     """
     if not file_folder or not file_name:
         return None
@@ -139,7 +143,7 @@ async def delete_from_s3(file_folder: str, file_name: str):
 
 
 def get_s3_url(file_folder: str, file_name: str):
-    """Получаем ссылку до файла в s3"""
+    """Получение ссылки до файла в s3"""
     if not file_folder or not file_name:
         return None
     file_path = f"{settings.STATIC_DIR}/{file_folder}/{file_name}"

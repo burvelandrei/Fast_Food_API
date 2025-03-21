@@ -21,8 +21,8 @@ conf = ConnectionConfig(
 )
 
 
-# Функция для отправки письма для подтверждения почты
 async def send_confirmation_email(email: str, token: str):
+    """Функция отправки письма подтверждения почты"""
     confirm_url = (
         f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}/"
         f"users/confirm-email/{token}/"

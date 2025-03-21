@@ -21,7 +21,7 @@ logger = logging.getLogger("redis_operations")
 
 class CartDO:
     """
-    Класс с операциями для cart и cartitem
+    Класс с операциями для Cart и CartItem
     """
 
     @staticmethod

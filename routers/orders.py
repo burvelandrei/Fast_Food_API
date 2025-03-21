@@ -61,7 +61,10 @@ async def get_all_orders(
     session: AsyncSession = Depends(get_session),
 ):
     if not status:
-        orders = await OrderDO.get_all(user_id=user.id, session=session)
+        orders = await OrderDO.get_all(
+            user_id=user.id,
+            session=session,
+        )
     else:
         orders = await OrderDO.get_all_by_status(
             user_id=user.id,
@@ -71,7 +74,7 @@ async def get_all_orders(
     return orders
 
 
-# Получение выполненных заказов
+# Роутер получения выполненных заказов
 @router.get("/history/", response_model=list[OrderOut])
 @cache(expire=30, key_builder=request_key_builder)
 async def get_order_history(
@@ -86,7 +89,7 @@ async def get_order_history(
     return orders
 
 
-# Получение всех заказов, кроме выполненных (текущие заказы)
+# Роутер получения всех заказов, кроме выполненных (текущие заказы)
 @router.get("/current/", response_model=list[OrderOut])
 @cache(expire=30, key_builder=request_key_builder)
 async def get_current_orders(
@@ -106,7 +109,7 @@ async def get_current_orders(
     return orders
 
 
-# Роутер получения заказа пользователя
+# Роутер получения заказа пользователя по id
 @router.get("/{order_id}/", response_model=OrderOut)
 @cache(expire=30, key_builder=request_key_builder)
 async def get_order(
@@ -122,7 +125,8 @@ async def get_order(
     return order
 
 
-# Роутер повторения заказа (добавляет в корзину те же продукты из заказа по id)
+# Роутер повторения заказа
+# (добавляет в корзину те же продукты из заказа по id)
 @router.post("/repeat/{order_id}/")
 async def repeat_order_to_cart(
     order_id: int,
@@ -145,7 +149,7 @@ async def repeat_order_to_cart(
     )
     if not db_order:
         raise HTTPException(status_code=404, detail="Order not found")
-
+    # проходимся по всем элементам заказа и повторяем
     for order_item in db_order.order_items:
         cart_item = CartItemCreate(
             product_id=order_item.product_id,

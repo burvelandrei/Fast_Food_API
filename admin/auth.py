@@ -25,7 +25,6 @@ class JWTAuthBackend(AuthenticationBackend):
         form = await request.form()
         email = form.get("email")
         password = form.get("password")
-
         if not email or not password:
             return False
         # Проверяем пользоваетля в БД и то что он является админом
@@ -37,7 +36,6 @@ class JWTAuthBackend(AuthenticationBackend):
                 or not user.is_admin
             ):
                 return False
-
         access_token = create_access_token(
             data={"email": email},
             secret_key=settings.SECRET_KEY_ADMIN,
@@ -66,7 +64,6 @@ class JWTAuthBackend(AuthenticationBackend):
         if not access_token:
             return False
         try:
-
             payload = jwt.decode(
                 access_token,
                 settings.SECRET_KEY_ADMIN,
@@ -75,9 +72,9 @@ class JWTAuthBackend(AuthenticationBackend):
             email = payload.get("email")
             if not email:
                 return False
-
             async with AsyncSessionLocal() as session:
                 user = await UserDO.get_by_email(email=email, session=session)
+                # Проверяем пользоваетля в БД и то что он является админом
                 if not user or not user.is_admin:
                     request.scope["set_cookie"]("access_token", "", max_age=0)
                     request.scope["set_cookie"]("refresh_token", "", max_age=0)
@@ -95,12 +92,13 @@ class JWTAuthBackend(AuthenticationBackend):
                     email = payload.get("email")
                     if not email:
                         return False
-
                     async with AsyncSessionLocal() as session:
                         user = await UserDO.get_by_email(
                             email=email,
                             session=session,
                         )
+                        # Проверяем пользоваетля в БД и
+                        # то что он является админом
                         if not user or not user.is_admin:
                             request.scope["set_cookie"](
                                 "access_token",
