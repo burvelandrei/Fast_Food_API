@@ -38,6 +38,9 @@ jobs:
       RMQ_PLAGIN_PORT: ${{ secrets.RMQ_PLAGIN_PORT }}
       RMQ_USER: ${{ secrets.RMQ_USER }}
       RMQ_PASSWORD: ${{ secrets.RMQ_PASSWORD }}
+      GRAFANA_USER: ${{ secrets.GRAFANA_USER }}
+      GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+
     services:
       db:
         image: postgres:15

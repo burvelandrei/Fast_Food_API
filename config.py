@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     RMQ_USER: str
     RMQ_PASSWORD: str
 
+    GRAFANA_USER: str
+    GRAFANA_PASSWORD: str
+
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
